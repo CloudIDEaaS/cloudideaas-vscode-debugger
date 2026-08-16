@@ -1,0 +1,95 @@
+{
+  "name": "cloudideaas-vscode-debugger",
+  "displayName": "cloudideaas-vscode-debugger",
+  "description": "A minimal debugger/web server that works on F5, no more ice age style console.log debugging or relying on browser dev tools. Works by convention over configuration",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.108.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "activationEvents": [
+    "onDebug"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+   "commands": [
+      {
+        "command": "cloudideaas-vscode-debugger.start",
+        "title": "Start Debugging",
+        "icon": {
+            "light": "resources/start-debugging.svg",
+            "dark": "resources/start-debugging.svg"        
+        }
+      },
+      {
+          "command": "cloudideaas-vscode-debugger.stop",
+          "title": "Stop Debugging",
+          "icon": {
+              "light": "resources/stop-debugging.svg",
+              "dark": "resources/stop-debugging.svg"
+          }
+      }      
+    ], 
+   "menus": {
+      "editor/title": [
+        {
+            "command": "cloudideaas-vscode-debugger.start",
+            "when": "!cloudideaas.debugging",
+            "group": "navigation"
+        },
+        {
+            "command": "cloudideaas-vscode-debugger.stop",
+            "when": "cloudideaas.debugging",
+            "group": "navigation"
+        }
+      ]
+    },          
+    "debuggers": [
+      {
+        "type": "cloudideaas-vscode-debugger",
+        "label": "CloudIDEaaS VSCode Debugger",
+        "languages": [
+          "javascript",
+          "typescript",
+          "html"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL to debug"
+              },
+              "port": {
+                "type": "number",
+                "default": 9222
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.125.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "eslint": "^10.5.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}

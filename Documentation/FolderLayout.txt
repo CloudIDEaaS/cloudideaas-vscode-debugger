@@ -1,0 +1,24 @@
+﻿
+
+│   DapCommandPacket.cs
+│   Program.cs
+│   StandardStreamService.cs
+│   VSCodeDebugger.csproj
+├───Extension
+│   └───cloudideaas-vscode-debugger
+│       │   .gitignore
+│       │   .vscode-test.mjs
+│       │   .vscodeignore
+│       │   CHANGELOG.md
+│       │   eslint.config.mjs
+│       │   extension.js
+│       │   jsconfig.json
+│       │   package-lock.json
+│       │   package.json
+│       │   README.md
+│       │   vsc-extension-quickstart.md
+│       ├───.vscode
+│       │       extensions.json
+│       │       launch.json
+│       └───test
+│               extension.test.js

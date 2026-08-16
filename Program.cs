@@ -1,0 +1,35 @@
+﻿using System.Diagnostics;
+using System.Windows.Forms;
+using Utils;
+using Utils.VisualStudio;
+
+namespace ChromeDebugger
+{
+    public class Program
+    {
+        private static StandardStreamService streamService;
+        private static string logPath;
+        private static string workingDirectory;
+        private static LogWriter logWriter;
+
+        public static void Main(string[] args)
+        {
+            var parentProcess = Process.GetCurrentProcess().GetParent();
+            var currentDirectory = Environment.CurrentDirectory;
+
+            workingDirectory = args[0];
+
+            logPath = Path.Combine(args[0], @".vscode\logs\VSCodeDebugger.log");
+
+            logWriter = new LogWriter(logPath);
+
+            VisualStudioExtensions.DebugAttach(false, true);
+
+            streamService = new StandardStreamService(logWriter, workingDirectory);
+
+            streamService.Start(parentProcess, currentDirectory);
+
+            streamService.Wait();
+        }
+    }
+}
