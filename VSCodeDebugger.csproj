@@ -5,10 +5,37 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+    <ApplicationIcon>Media\Icon.ico</ApplicationIcon>
+    <Title>VSCodeDebugger Agent</Title>
+    <Version>1.1.0</Version>
+    <FileVersion>1.1.0.0</FileVersion>
+    <AssemblyVersion>1.1.*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <Authors>Ken Netherland, Laveda Jones</Authors>
+    <Company>CloudIDEaaS</Company>
+    <Description>A lightweight C# debug adapter that integrates Visual Studio Code with Chrome using the Debug Adapter Protocol (DAP) and Chrome DevTools Protocol (CDP), providing breakpoints, stepping, variable inspection, expression evaluation, and browser-based JavaScript debugging.</Description>
+    <Copyright>Copyright (c) 2026 CloudIDEaaS</Copyright>
+    <PackageProjectUrl>https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>cloudideaas-debugger.png</PackageIcon>      
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="StandardStreamService - Copy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Media\Icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,8 +44,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Documentation\" />
-    <Folder Include="Extension\cloudideaas-vscode-debugger\bin\" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Extension\cloudideaas-vscode-debugger\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Media\cloudideaas-debugger.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
     <Target Name="CopyToVSCodeExtension" AfterTargets="Build">

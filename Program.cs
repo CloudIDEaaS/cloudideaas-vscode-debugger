@@ -17,6 +17,16 @@ namespace ChromeDebugger
             var parentProcess = Process.GetCurrentProcess().GetParent();
             var currentDirectory = Environment.CurrentDirectory;
 
+            if (args.Length < 1)
+            {
+                Console.WriteLine("Missing working directory argument.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine("Usage: ChromeDebugger.exe <working_directory>");
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+
+                return;
+            }
+
             workingDirectory = args[0];
 
             logPath = Path.Combine(args[0], @".vscode\logs\VSCodeDebugger.log");

@@ -12,6 +12,8 @@ Extension/cloudideaas-vscode-debugger/bin/runtimes/
 ffprobe.exe
 ggml-cuda-whisper.dll
 ffmpeg.exe
+**/*.vsix
+*.vsix
 
 # User-specific files
 *.rsuser

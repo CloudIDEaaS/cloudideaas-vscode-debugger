@@ -1,51 +1,94 @@
 {
   "name": "cloudideaas-vscode-debugger",
-  "displayName": "cloudideaas-vscode-debugger",
+  "displayName": "CloudIDEaaS JavaScript Debugger",
   "description": "A minimal debugger/web server that works on F5, no more ice age style console.log debugging or relying on browser dev tools. Works by convention over configuration",
-  "version": "0.0.1",
+  "version": "0.1.2",
+  "publisher": "CloudIDEaaS",
   "engines": {
     "vscode": "^1.108.0"
   },
   "categories": [
     "Debuggers"
   ],
+  "keywords": [
+    "JavaScript Debugger",
+    "JavaScript Debugging",
+    "VS Code Debugger",
+    "VSCode Debugger",
+    "Chrome Debugger",
+    "Chrome DevTools Protocol",
+    "CDP",
+    "Debug Adapter Protocol",
+    "DAP",
+    "Browser Debugging",
+    "Web Debugger",
+    "HTML Debugger",
+    "Chrome",
+    "Chromium",
+    "Breakpoints",
+    "Conditional Breakpoints",
+    "Exception Breakpoints",
+    "Step Debugging",
+    "Variable Inspection",
+    "Expression Evaluation",
+    "Call Stack",
+    "Source Code Debugging",
+    "Remote Debugging",
+    "Developer Tools",
+    "Web Development",
+    "JavaScript",
+    "HTML",
+    "C#",
+    ".NET",
+    "CloudIDEaaS"
+  ],
+  "pricing": "Free",
+  "icon": "resources/cloudideaas-debugger.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger/issues"
+  },
+  "homepage": "https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger#readme",
   "activationEvents": [
     "onDebug"
   ],
-  "main": "./extension.js",
+  "main": "./extension.js",  
   "contributes": {
-   "commands": [
+    "commands": [
       {
         "command": "cloudideaas-vscode-debugger.start",
         "title": "Start Debugging",
         "icon": {
-            "light": "resources/start-debugging.svg",
-            "dark": "resources/start-debugging.svg"        
+          "light": "resources/start-debugging.svg",
+          "dark": "resources/start-debugging.svg"
         }
       },
       {
-          "command": "cloudideaas-vscode-debugger.stop",
-          "title": "Stop Debugging",
-          "icon": {
-              "light": "resources/stop-debugging.svg",
-              "dark": "resources/stop-debugging.svg"
-          }
-      }      
-    ], 
-   "menus": {
+        "command": "cloudideaas-vscode-debugger.stop",
+        "title": "Stop Debugging",
+        "icon": {
+          "light": "resources/stop-debugging.svg",
+          "dark": "resources/stop-debugging.svg"
+        }
+      }
+    ],
+    "menus": {
       "editor/title": [
         {
-            "command": "cloudideaas-vscode-debugger.start",
-            "when": "!cloudideaas.debugging",
-            "group": "navigation"
+          "command": "cloudideaas-vscode-debugger.start",
+          "when": "!cloudideaas.debugging",
+          "group": "navigation"
         },
         {
-            "command": "cloudideaas-vscode-debugger.stop",
-            "when": "cloudideaas.debugging",
-            "group": "navigation"
+          "command": "cloudideaas-vscode-debugger.stop",
+          "when": "cloudideaas.debugging",
+          "group": "navigation"
         }
       ]
-    },          
+    },
     "debuggers": [
       {
         "type": "cloudideaas-vscode-debugger",
@@ -81,12 +124,12 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.125.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
-    "eslint": "^10.5.0",
+    "@types/vscode": "^1.108.0",
     "@vscode/test-cli": "^0.0.15",
-    "@vscode/test-electron": "^3.0.0"
+    "@vscode/test-electron": "^3.0.0",
+    "eslint": "^10.5.0"
   },
   "overrides": {
     "diff": "^8.0.4",
