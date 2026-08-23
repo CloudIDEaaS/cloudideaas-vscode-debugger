@@ -23,7 +23,7 @@ CloudIDEaaS VSCode Debugger is designed around **convention over configuration**
 
 ## Getting Started
 
-Read our book on [![Visual Studio Code Browser Debugging from the Ground Up](Media/Book.png)](https://publications.lavedajones.com/vscode-debugger/index.html)
+Read our free online book on [![Visual Studio Code Browser Debugging from the Ground Up](Media/Book.png)](https://publications.lavedajones.com/vscode-debugger/index.html)
 for a complete guide to using and understanding the debugger.
 
 Create a VS Code debug configuration using the `cloudideaas-vscode-debugger` debugger type and specify the URL for the page you want to debug.
