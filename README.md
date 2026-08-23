@@ -1,8 +1,9 @@
 # CloudIDEaaS VSCode Debugger
 
-[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/CloudIDEaaS.cloudideaas-vscode-debugger?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
-
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/CloudIDEaaS.cloudideaas-vscode-debugger)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Version](https://vsmarketplacebadges.dev/version/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Installs](https://vsmarketplacebadges.dev/installs/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Downloads](https://vsmarketplacebadges.dev/downloads/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Rating](https://vsmarketplacebadges.dev/rating/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
 
 A lightweight Visual Studio Code debugger for browser-based JavaScript, TypeScript, and HTML projects.
 
