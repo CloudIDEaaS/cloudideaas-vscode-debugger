@@ -18,23 +18,33 @@ namespace ChromeDebugger
 {
     public class StandardStreamService : BaseStandardStreamService<DapCommandPacket>, ILogWriter
     {
+        private DirectoryInfo logsDirectory;
         private LogWriter logWriter;
+        private string assemblyLoadLogPath;
+        private LogWriter assemblyLoadLogWriter;
         private string dapMessagesLogPath;
         private LogWriter dapMessagesLogWriter;
         private string cdpMessagesLogPath;
         private LogWriter cdpMessagesLogWriter;
-        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cdpCancellationTokenSource;
+        private CancellationTokenSource dotNetCancellationTokenSource;
         private Dictionary<string, object> vsCodeSettings;
         private Dictionary<string, object> launchSettings;
         private string userDataDirectory;
         private string debuggerLogDirectory;
+        private int usedPort = -1;
         private string vsCodeDirectory;
         private int nextSequence;
         private CdpConnection? cdpConnection;
+        private Task dotNetTask;
+        private bool relaunching;
 
         public StandardStreamService(LogWriter logWriter, string workingDirectory)
         {
-            var logsDirectory = new DirectoryInfo(Path.Combine(workingDirectory, @".vscode\logs"));
+            logsDirectory = new DirectoryInfo(Path.Combine(workingDirectory, @".vscode\logs"));
+
+            cdpCancellationTokenSource = new CancellationTokenSource();
+            dotNetCancellationTokenSource = new CancellationTokenSource();
 
             this.logWriter = logWriter;
             this.currentWorkingDirectory = workingDirectory;
@@ -44,13 +54,21 @@ namespace ChromeDebugger
                 logsDirectory.Create();
             }
 
-            dapMessagesLogPath = Path.Combine(logsDirectory.FullName, "VSCodeDebugger.DapMessages.log");
+            dapMessagesLogPath = Path.Combine(logsDirectory.FullName, DateTime.Now.ToSortableShortDateTimeText() + "_VSCodeDebugger.DapMessages.log");
             dapMessagesLogWriter = new LogWriter(dapMessagesLogPath);
 
-            cdpMessagesLogPath = Path.Combine(logsDirectory.FullName, @"VSCodeDebugger.CdpMessages.log");
+            cdpMessagesLogPath = Path.Combine(logsDirectory.FullName, DateTime.Now.ToSortableShortDateTimeText() + "_VSCodeDebugger.CdpMessages.log");
             cdpMessagesLogWriter = new LogWriter(cdpMessagesLogPath);
 
-            cancellationTokenSource = new CancellationTokenSource();
+            assemblyLoadLogPath = Path.Combine(logsDirectory.FullName, DateTime.Now.ToSortableShortDateTimeText() + "_Assembly.log");
+            assemblyLoadLogWriter = new LogWriter(assemblyLoadLogPath);
+
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            AppDomain.CurrentDomain.AssemblyLoad += (sender, e) =>
+            {
+                assemblyLoadLogWriter.WriteLine($"{e.LoadedAssembly.Location}");
+            };
         }
 
         protected override async void HandleCommand(DapCommandPacket commandPacket)
@@ -545,7 +563,18 @@ namespace ChromeDebugger
                             await cdpConnection.DisconnectAsync();
                         }
 
-                        cancellationTokenSource.Cancel();
+                        cdpCancellationTokenSource.Cancel();
+                        KillAnyDotNetServeInstance(this.usedPort);
+
+                        dotNetCancellationTokenSource.Cancel();
+
+                        try
+                        {
+                            logsDirectory.CleanupSortableFiles("*.log", TimeSpan.FromDays(3));
+                        }
+                        catch
+                        {
+                        }
 
                         break;
                     }
@@ -931,7 +960,7 @@ namespace ChromeDebugger
                             await cdpConnection.DisconnectAsync();
                         }
 
-                        cancellationTokenSource.Cancel();
+                        cdpCancellationTokenSource.Cancel();
 
                         break;
                     }
@@ -970,6 +999,48 @@ namespace ChromeDebugger
                 default:
                     DebugUtils.Break();
                     break;
+            }
+        }
+
+        private async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            try
+            {
+                try
+                {
+                    WriteLine("Unhandled exception: " + e.ExceptionObject.ToString());
+                }
+                catch
+                {
+                }
+
+                if (cdpConnection != null)
+                {
+                    await cdpConnection.DisconnectAsync();
+                }
+
+                if (cdpCancellationTokenSource != null)
+                {
+                    cdpCancellationTokenSource.Cancel();
+                }
+
+                if (this.usedPort != -1)
+                {
+                    KillAnyDotNetServeInstance(this.usedPort);
+                }
+
+                if (dotNetCancellationTokenSource != null)
+                {
+                    dotNetCancellationTokenSource.Cancel();
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLine("Error during unhandled exception cleanup: " + ex.ToString());
+            }
+            finally
+            {
+                Environment.Exit(1);
             }
         }
 
@@ -1216,16 +1287,17 @@ namespace ChromeDebugger
             var port = uri.Port;
             var errorCount = 0;
             var debuggerUri = new Uri($"http://127.0.0.1:9222");
-            var relaunching = false;
             OutputWriteLine outputWriteLine = null!;
             ErrorWriteLine errorWriteLine = null!;
             string webSocketUrl;
             Uri webSocketUri;
             string chromeResponse;
 
+            this.usedPort = port;
+
             vsCodeDirectory = Path.Combine(workingDirectory, @".vscode");
             userDataDirectory = Path.Combine(vsCodeDirectory, "chrome-debug-profile");
-            debuggerLogDirectory = Path.Combine(vsCodeDirectory, @".vscode\chrome-debug-profile");
+            debuggerLogDirectory = Path.Combine(vsCodeDirectory, @"chrome-debug-profile");
 
             chromeHandler.OutputWriteLine = (f, e) =>
             {
@@ -1280,48 +1352,11 @@ namespace ChromeDebugger
                 if (error == "dotnet failed with ExitCode=2" || error.RegexIsMatch(@"Unexpected error: System.IO.IOException: Failed to bind to address (?<address>.*?): address already in use."))
                 {
                     var address = error.RegexGet(@"Unexpected error: System.IO.IOException: Failed to bind to address (?<address>.*?): address already in use.", "address");
-                    var dotNetProcesses = Process.GetProcessesByName("dotnet").Where(p => p.Id != dotNetHandler.ProcessId).ToList();
+                    var flowControl = KillRelaunchDotNetServe(workingDirectory, dotNetHandler, lockObject, port, relaunching, outputWriteLine, errorWriteLine, true);
 
-                    foreach (var process in dotNetProcesses)
+                    if (!flowControl)
                     {
-                        var platformProcess = process.GetPlatformProcess();
-                        var commandLine = platformProcess.CommandLine;
-                        var processPort = commandLine.RegexGet(@"serve --port (?<port>\d+?)$", "port");
-
-                        if (processPort != null && int.TryParse(processPort, out int parsedPort) && parsedPort == port)
-                        {
-                            process.Kill();
-
-                            WriteLine("Killed dotnet process with PID {0} that is using port {1}.", process.Id, port);
-
-                            dotNetHandler.OutputWriteLine = outputWriteLine;
-                            dotNetHandler.ErrorWriteLine = errorWriteLine;
-
-                            using (lockObject.Lock())
-                            {
-                                if (relaunching)
-                                {
-                                    return;
-                                }
-
-                                relaunching = true;
-                            }
-
-                            Task.Run(() =>
-                            {
-                                if (!dotNetHandler.HasExited)
-                                {
-                                    dotNetHandler.Kill();
-                                }
-
-                                dotNetHandler.Serve(workingDirectory, port);
-
-                                using (lockObject.Lock())
-                                {
-                                    relaunching = false;
-                                }
-                            });
-                        }
+                        return;
                     }
                 }
                 else
@@ -1335,10 +1370,11 @@ namespace ChromeDebugger
             dotNetHandler.OutputWriteLine = outputWriteLine;
             dotNetHandler.ErrorWriteLine = errorWriteLine;
 
-            _ = Task.Run(() =>
+            dotNetTask = Task.Run(() =>
             {
                 dotNetHandler.Serve(workingDirectory, port);
-            });
+
+            }, dotNetCancellationTokenSource.Token);
 
             if (!serverReadyResetEvent.WaitOne(60_000)) // kn todo - put back to 10 secs.
             {
@@ -1351,7 +1387,13 @@ namespace ChromeDebugger
             // Launch Chrome on about:blank. The real application URL is not loaded until
             // configurationDone, after VS Code has sent all initial breakpoint configuration.
             //
-            chromeHandler.LaunchDebugMode(new Uri("about:blank"), debuggerUri, new DirectoryInfo(workingDirectory));
+
+            if (!Directory.Exists(userDataDirectory))
+            {
+                Directory.CreateDirectory(userDataDirectory);
+            }
+
+            chromeHandler.LaunchDebugMode(new Uri("about:blank"), debuggerUri, new DirectoryInfo(userDataDirectory));
 
             await Task.Run(() => chromeStartedResetEvent.WaitOne(10_000));
 
@@ -1362,7 +1404,7 @@ namespace ChromeDebugger
 
             cdpConnection = new CdpConnection(logWriter, cdpMessagesLogWriter);
 
-            await cdpConnection.ConnectAsync(webSocketUri, cancellationTokenSource.Token, this);
+            await cdpConnection.ConnectAsync(webSocketUri, cdpCancellationTokenSource.Token, this);
 
             //
             // 7. Enable the CDP domains we need.
@@ -1375,6 +1417,80 @@ namespace ChromeDebugger
             {
                 maxDepth = 32
             });
+        }
+
+        private bool KillAnyDotNetServeInstance(int port)
+        {
+            var dotNetProcesses = Process.GetProcessesByName("dotnet").ToList();
+
+            foreach (var process in dotNetProcesses)
+            {
+                var platformProcess = process.GetPlatformProcess();
+                var commandLine = platformProcess.CommandLine;
+                var processPort = commandLine.RegexGet(@"serve --port (?<port>\d+?)$", "port");
+
+                if (processPort != null && int.TryParse(processPort, out int parsedPort) && parsedPort == port)
+                {
+                    process.Kill();
+
+                    WriteLine("Killed dotnet process with PID {0} that is using port {1}.", process.Id, port);
+                }
+            }
+
+            return true;
+        }
+
+        private bool KillRelaunchDotNetServe(string workingDirectory, DotNetCommandHandler dotNetHandler, IManagedLockObject lockObject, int port, bool relaunching, OutputWriteLine outputWriteLine, ErrorWriteLine errorWriteLine, bool relaunch = false)
+        {
+            var dotNetProcesses = Process.GetProcessesByName("dotnet").Where(p => p.Id != dotNetHandler.ProcessId).ToList();
+
+            foreach (var process in dotNetProcesses)
+            {
+                var platformProcess = process.GetPlatformProcess();
+                var commandLine = platformProcess.CommandLine;
+                var processPort = commandLine.RegexGet(@"serve --port (?<port>\d+?)$", "port");
+
+                if (processPort != null && int.TryParse(processPort, out int parsedPort) && parsedPort == port)
+                {
+                    process.Kill();
+
+                    WriteLine("Killed dotnet process with PID {0} that is using port {1}.", process.Id, port);
+
+                    dotNetHandler.OutputWriteLine = outputWriteLine;
+                    dotNetHandler.ErrorWriteLine = errorWriteLine;
+
+                    if (relaunch)
+                    {
+                        using (lockObject.Lock())
+                        {
+                            if (relaunching)
+                            {
+                                return false;
+                            }
+
+                            relaunching = true;
+                        }
+
+                        dotNetTask = Task.Run(() =>
+                        {
+                            if (!dotNetHandler.HasExited)
+                            {
+                                dotNetHandler.Kill();
+                            }
+
+                            dotNetHandler.Serve(workingDirectory, port);
+
+                            using (lockObject.Lock())
+                            {
+                                relaunching = false;
+                            }
+
+                        }, dotNetCancellationTokenSource.Token);
+                    }
+                }
+            }
+
+            return true;
         }
 
         public IDisposable ErrorMode()

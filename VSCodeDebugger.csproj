@@ -1,73 +1,72 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <PlatformTarget>x64</PlatformTarget>
-    <ApplicationIcon>Media\Icon.ico</ApplicationIcon>
-    <Title>VSCodeDebugger Agent</Title>
-    <Version>1.1.0</Version>
-    <FileVersion>1.1.0.0</FileVersion>
-    <AssemblyVersion>1.1.*</AssemblyVersion>
-    <Deterministic>false</Deterministic>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Authors>Ken Netherland, Laveda Jones</Authors>
-    <Company>CloudIDEaaS</Company>
-    <Description>A lightweight C# debug adapter that integrates Visual Studio Code with Chrome using the Debug Adapter Protocol (DAP) and Chrome DevTools Protocol (CDP), providing breakpoints, stepping, variable inspection, expression evaluation, and browser-based JavaScript debugging.</Description>
-    <Copyright>Copyright (c) 2026 CloudIDEaaS</Copyright>
-    <PackageProjectUrl>https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>cloudideaas-debugger.png</PackageIcon>      
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PlatformTarget>x64</PlatformTarget>
+        <ApplicationIcon>Media\Icon.ico</ApplicationIcon>
+        <Title>VSCodeDebugger Agent</Title>
+        <Version>1.1.0</Version>
+        <FileVersion>1.1.0.0</FileVersion>
+        <AssemblyVersion>1.1.*</AssemblyVersion>
+        <Deterministic>false</Deterministic>
+        <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+        <Authors>Ken Netherland, Laveda Jones</Authors>
+        <Company>CloudIDEaaS</Company>
+        <Description>A lightweight C# debug adapter that integrates Visual Studio Code with Chrome using the Debug Adapter Protocol (DAP) and Chrome DevTools Protocol (CDP), providing breakpoints, stepping, variable inspection, expression evaluation, and browser-based JavaScript debugging.</Description>
+        <Copyright>Copyright (c) 2026 CloudIDEaaS</Copyright>
+        <PackageProjectUrl>https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>cloudideaas-debugger.png</PackageIcon>
+        <TrimUnusedAssemblies>true</TrimUnusedAssemblies>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>False</Optimize>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <Optimize>False</Optimize>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>True</Optimize>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="StandardStreamService - Copy.cs" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="StandardStreamService - Copy.cs" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Media\Icon.ico" />
-  </ItemGroup>
+    <ItemGroup>
+        <Content Include="Media\Icon.ico" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Utils.VisualStudio\Utils.VisualStudio.csproj" />
-    <ProjectReference Include="..\Utils\Utils.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Utils.VisualStudio\Utils.VisualStudio.csproj" />
+        <ProjectReference Include="..\Utils\Utils.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Extension\cloudideaas-vscode-debugger\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="Media\cloudideaas-debugger.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="README.md">
-      <PackagePath>\</PackagePath>
-      <Pack>True</Pack>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Update="Extension\cloudideaas-vscode-debugger\README.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Update="Media\cloudideaas-debugger.png">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Update="README.md">
+            <PackagePath>\</PackagePath>
+            <Pack>True</Pack>
+        </None>
+    </ItemGroup>
 
-    <Target Name="CopyToVSCodeExtension" AfterTargets="Build">
+    <Target Name="CopyToVSCodeExtension" AfterTargets="CopyFilesToOutputDirectory">
 
         <PropertyGroup>
-            <VSCodeExtensionBin>
-                $(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin
-            </VSCodeExtensionBin>
+            <VSCodeExtensionBin>$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin</VSCodeExtensionBin>
         </PropertyGroup>
 
         <MakeDir Directories="$(VSCodeExtensionBin)" />
@@ -80,4 +79,14 @@
 
     </Target>
 
+    <Target Name="RunTrimmerOnBuild" AfterTargets="CopyToVSCodeExtension" Condition="'$(TrimUnusedAssemblies)' == 'true'">
+        <Message Text="=== FORCING TRIMMER RUN BEFORE PUBLISH ===" Importance="High" />
+        <Exec Command="&quot;$(SolutionDir)AssemblyPublishTrimmer\bin\Debug\net8.0-windows\AssemblyPublishTrimmer.exe&quot; --deletePdbs --deleteOtherExes --deleteRuntimes --deleteUnusedResources --deleteHighProbabilityUnusedNativeAssemblies &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\.vscode\logs&quot; &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin\$(TargetFileName)&quot;" />
+    </Target>
+
+    <Target Name="RunTrimmerOnActualPublish" AfterTargets="Publish" Condition="'$(TrimUnusedAssemblies)' == 'true'">
+        <Message Text="=== RUNNING TRIMMER ON PUBLISHED OUTPUT ===" Importance="High" />
+        <Exec Command="&quot;$(SolutionDir)AssemblyPublishTrimmer\bin\Debug\net8.0-windows\AssemblyPublishTrimmer.exe&quot; --deletePdbs --deleteOtherExes --deleteRuntimes --deleteUnusedResources --deleteHighProbabilityUnusedNativeAssemblies &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\.vscode\logs&quot; &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin\$(TargetFileName)&quot;" />
+    </Target>    
+    
 </Project>

@@ -4,7 +4,7 @@ using Utils;
 using Utils.VisualStudio;
 
 namespace ChromeDebugger
-{
+{  
     public class Program
     {
         private static StandardStreamService streamService;
@@ -29,7 +29,7 @@ namespace ChromeDebugger
 
             workingDirectory = args[0];
 
-            logPath = Path.Combine(args[0], @".vscode\logs\VSCodeDebugger.log");
+            logPath = Path.Combine(args[0], @".vscode\logs\" + DateTime.Now.ToSortableShortDateTimeText() + "_VSCodeDebugger.log");
 
             logWriter = new LogWriter(logPath);
 

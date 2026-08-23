@@ -13,6 +13,7 @@ ffprobe.exe
 ggml-cuda-whisper.dll
 ffmpeg.exe
 **/*.vsix
+**/*.zip
 *.vsix
 
 # User-specific files

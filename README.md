@@ -112,6 +112,15 @@ Current limitations may include:
 - Multi-target debugging such as workers, multiple tabs, and complex browser target topologies is limited.
 - Advanced DAP features such as reverse debugging, instruction breakpoints, data breakpoints, and disassembly are not currently provided.
 
+## Contributing
+
+If you want to contribute but not include dependent projects, change references to Extension\cloudideaas-vscode-debugger\bin\
+Also set the following in VSCodeDebugger.csproj to false as such:
+
+<TrimUnusedAssemblies>false</TrimUnusedAssemblies>
+
+You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
+
 ## Reporting Issues
 
 When reporting a debugger problem, please include:
