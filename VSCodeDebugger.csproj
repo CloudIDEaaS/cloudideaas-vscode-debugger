@@ -62,7 +62,16 @@
             <Pack>True</Pack>
         </None>
     </ItemGroup>
+    
+    <Target Name="CopyReadmeToVSCodeExtension" AfterTargets="Build">
 
+        <PropertyGroup>
+            <VSCodeExtensionDirectory>$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger</VSCodeExtensionDirectory>
+        </PropertyGroup>
+
+        <Copy SourceFiles="$(MSBuildProjectDirectory)\README.md" DestinationFolder="$(VSCodeExtensionDirectory)" SkipUnchangedFiles="true" />
+
+    </Target>
     <Target Name="CopyToVSCodeExtension" AfterTargets="CopyFilesToOutputDirectory">
 
         <PropertyGroup>
@@ -81,12 +90,12 @@
 
     <Target Name="RunTrimmerOnBuild" AfterTargets="CopyToVSCodeExtension" Condition="'$(TrimUnusedAssemblies)' == 'true'">
         <Message Text="=== FORCING TRIMMER RUN BEFORE PUBLISH ===" Importance="High" />
-        <Exec Command="&quot;$(SolutionDir)AssemblyPublishTrimmer\bin\Debug\net8.0-windows\AssemblyPublishTrimmer.exe&quot; --deletePdbs --deleteOtherExes --deleteRuntimes --deleteUnusedResources --deleteHighProbabilityUnusedNativeAssemblies &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\.vscode\logs&quot; &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin\$(TargetFileName)&quot;" />
+        <Exec Command="&quot;$(SolutionDir)AssemblyPublishTrimmer\bin\Release\net8.0-windows\AssemblyPublishTrimmer.exe&quot; --deletePdbs --deleteOtherExes --deleteRuntimes --deleteUnusedResources --deleteHighProbabilityUnusedNativeAssemblies &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\.vscode\logs&quot; &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin\$(TargetFileName)&quot;" />
     </Target>
 
     <Target Name="RunTrimmerOnActualPublish" AfterTargets="Publish" Condition="'$(TrimUnusedAssemblies)' == 'true'">
         <Message Text="=== RUNNING TRIMMER ON PUBLISHED OUTPUT ===" Importance="High" />
-        <Exec Command="&quot;$(SolutionDir)AssemblyPublishTrimmer\bin\Debug\net8.0-windows\AssemblyPublishTrimmer.exe&quot; --deletePdbs --deleteOtherExes --deleteRuntimes --deleteUnusedResources --deleteHighProbabilityUnusedNativeAssemblies &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\.vscode\logs&quot; &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin\$(TargetFileName)&quot;" />
+        <Exec Command="&quot;$(SolutionDir)AssemblyPublishTrimmer\bin\Release\net8.0-windows\AssemblyPublishTrimmer.exe&quot; --deletePdbs --deleteOtherExes --deleteRuntimes --deleteUnusedResources --deleteHighProbabilityUnusedNativeAssemblies &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\.vscode\logs&quot; &quot;$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin\$(TargetFileName)&quot;" />
     </Target>    
     
 </Project>

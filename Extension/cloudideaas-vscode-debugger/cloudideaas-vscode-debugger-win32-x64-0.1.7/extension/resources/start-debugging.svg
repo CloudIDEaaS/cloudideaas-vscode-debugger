@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <!-- Compact debug/play icon tuned for a 24x24 VS Code sidebar glyph -->
-  <path d="M6.5 3.5v4.25H4.75L3 6v3.2l1.45 1.3L3 11.8V15l1.75-1.75H6.5v7.25" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 5.25v13.5L20 12 9 5.25Z" fill="#42c85a" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  <path d="M9 5.25v13.5L20 12 9 5.25Z" fill="#42c85a" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-</svg>

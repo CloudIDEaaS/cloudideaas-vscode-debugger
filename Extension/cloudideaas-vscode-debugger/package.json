@@ -2,7 +2,7 @@
   "name": "cloudideaas-vscode-debugger",
   "displayName": "CloudIDEaaS JavaScript Debugger",
   "description": "A minimal debugger/web server that works on F5, no more ice age style console.log debugging or relying on browser dev tools. Works by convention over configuration",
-  "version": "0.1.7",
+  "version": "0.1.10",
   "publisher": "CloudIDEaaS",
   "engines": {
     "vscode": "^1.108.0"
@@ -55,7 +55,29 @@
   "activationEvents": [
     "onDebug"
   ],
-  "main": "./dist/extension.js",  
+  "scripts": {
+      "build:adapter": "dotnet build ../../VSCodeDebugger.csproj -c Release -p:Platform=x64",
+      "publish:adapter": "dotnet publish ../../VSCodeDebugger.csproj -c Release -p:Platform=x64 -p:PublishProfile=FolderProfile",
+      "bundle": "esbuild extension.js --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js",
+      "vsce:list": "vsce ls",
+      "vsce:package": "vsce package --no-dependencies --target win32-x64 --out cloudideaas-vscode-debugger-release.vsix",
+      "vsce:publish": "vsce publish --packagePath cloudideaas-vscode-debugger-release.vsix",
+      "release:prepare": "npm run publish:adapter && npm run bundle && npm run vsce:list",
+      "release:prepare:skip-adapter": "npm run bundle && npm run vsce:list",
+      "release:patch": "bumpp patch --yes --no-commit --no-tag --no-push && npm run release:prepare && npm run vsce:package",
+      "release:minor": "bumpp minor --yes --no-commit --no-tag --no-push && npm run release:prepare && npm run vsce:package",
+      "release:major": "bumpp major --yes --no-commit --no-tag --no-push && npm run release:prepare && npm run vsce:package",
+      "release:patch:skip-adapter": "bumpp patch --yes --no-commit --no-tag --no-push && npm run release:prepare:skip-adapter && npm run vsce:package",
+      "release:minor:skip-adapter": "bumpp minor --yes --no-commit --no-tag --no-push && npm run release:prepare:skip-adapter && npm run vsce:package",
+      "release:major:skip-adapter": "bumpp major --yes --no-commit --no-tag --no-push && npm run release:prepare:skip-adapter && npm run vsce:package",
+      "publish:patch": "npm run release:patch && npm run vsce:publish",
+      "publish:minor": "npm run release:minor && npm run vsce:publish",
+      "publish:major": "npm run release:major && npm run vsce:publish",
+      "publish:patch:skip-adapter": "npm run release:patch:skip-adapter && npm run vsce:publish",
+      "publish:minor:skip-adapter": "npm run release:minor:skip-adapter && npm run vsce:publish",
+      "publish:major:skip-adapter": "npm run release:major:skip-adapter && npm run vsce:publish"
+  },
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -118,17 +140,15 @@
       }
     ]
   },
-  "scripts": {
-    "lint": "eslint .",
-    "pretest": "npm run lint",
-    "test": "vscode-test"
-  },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "@types/vscode": "^1.108.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
+    "bumpp": "^12.2.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.5.0"
   },
   "overrides": {

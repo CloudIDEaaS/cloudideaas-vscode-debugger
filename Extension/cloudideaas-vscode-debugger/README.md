@@ -1,5 +1,10 @@
 # CloudIDEaaS VSCode Debugger
 
+[![Version](https://vsmarketplacebadges.dev/version/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Installs](https://vsmarketplacebadges.dev/installs/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Downloads](https://vsmarketplacebadges.dev/downloads/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[![Rating](https://vsmarketplacebadges.dev/rating/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+
 A lightweight Visual Studio Code debugger for browser-based JavaScript, TypeScript, and HTML projects.
 
 CloudIDEaaS VSCode Debugger is designed around **convention over configuration**: start debugging from VS Code, launch the local web application and Chrome debugging session, set breakpoints, step through code, and inspect runtime values without relying on `console.log` or constantly switching to browser DevTools.
@@ -24,6 +29,8 @@ CloudIDEaaS VSCode Debugger is designed around **convention over configuration**
 ## Getting Started
 
 Read our free online book on [![Visual Studio Code Browser Debugging from the Ground Up](Media/Book.png)](https://publications.lavedajones.com/vscode-debugger/index.html)
+[https://publications.lavedajones.com/vscode-debugger/index.html](https://publications.lavedajones.com/vscode-debugger/index.html)
+
 for a complete guide to using and understanding the debugger.
 
 Create a VS Code debug configuration using the `cloudideaas-vscode-debugger` debugger type and specify the URL for the page you want to debug.
@@ -105,6 +112,67 @@ Current limitations may include:
 - Multi-target debugging such as workers, multiple tabs, and complex browser target topologies is limited.
 - Advanced DAP features such as reverse debugging, instruction breakpoints, data breakpoints, and disassembly are not currently provided.
 
+## Contributing
+
+If you want to contribute but not include dependent projects, change references to Extension\cloudideaas-vscode-debugger\bin\
+Also set the following in VSCodeDebugger.csproj to false as such:
+
+<TrimUnusedAssemblies>false</TrimUnusedAssemblies>
+
+You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
+
+
+## Troubleshooting the Debug Adapter
+
+The extension includes a PowerShell troubleshooting script at:
+
+```text
+scripts\Test-DebugAdapter.ps1
+```
+
+This script exercises the C# debug adapter directly using the Debug Adapter Protocol (DAP), independently of Visual Studio Code. It can help determine whether a problem is occurring in the packaged debug adapter/runtime or in the Visual Studio Code extension integration.
+
+The simulator performs a basic debugging sequence through launch and shutdown:
+
+```text
+initialize
+launch
+setBreakpoints
+setExceptionBreakpoints
+configurationDone
+disconnect
+```
+
+### Running the Troubleshooting Script
+
+Open PowerShell in the installed extension directory and run:
+
+```powershell
+.\scripts\Test-DebugAdapter.ps1 `
+    -DebuggerPath ".\bin\VSCodeDebugger.exe" `
+    -Url "http://localhost:8000/index.html" `
+    -WebRoot "C:\Path\To\Your\Project"
+```
+
+To test a specific breakpoint, also provide the source file and line number:
+
+```powershell
+.\scripts\Test-DebugAdapter.ps1 `
+    -DebuggerPath ".\bin\VSCodeDebugger.exe" `
+    -Url "http://localhost:8000/index.html" `
+    -WebRoot "C:\Path\To\Your\Project" `
+    -BreakpointFile "C:\Path\To\Your\Project\index.html" `
+    -BreakpointLine 25
+```
+
+If `-BreakpointFile` is omitted, the script uses `index.html` under the specified `WebRoot`.
+
+### Interpreting the Results
+
+If the script successfully completes the DAP launch sequence and disconnects normally, the packaged C# debug adapter and its supporting runtime are able to start and respond to the basic DAP requests. A problem that occurs only when debugging through Visual Studio Code is therefore more likely to involve extension integration, launch configuration, Chrome startup, or the specific debugging scenario.
+
+If the script fails before completing the launch sequence, include its console output when reporting the issue. This can help identify missing runtime files, adapter startup failures, DAP request failures, or other packaging/runtime problems.
+
 ## Reporting Issues
 
 When reporting a debugger problem, please include:
@@ -115,6 +183,7 @@ When reporting a debugger problem, please include:
 - Relevant `launch.json` configuration.
 - Whether the issue occurs during launch, breakpoint setup, stepping, variable inspection, or shutdown.
 - Any relevant extension/debug-adapter log output.
+- Output from `scripts\Test-DebugAdapter.ps1`, if the troubleshooting script also reproduces the problem.
 
 ## Release Notes
 

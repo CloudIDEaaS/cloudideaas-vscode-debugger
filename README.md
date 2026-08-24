@@ -121,6 +121,87 @@ Also set the following in VSCodeDebugger.csproj to false as such:
 
 You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
 
+
+## Troubleshooting the Debug Adapter
+
+The extension includes a PowerShell troubleshooting script at:
+
+```text
+scripts\Test-DebugAdapter.ps1
+```
+
+This script exercises the C# debug adapter directly using the Debug Adapter Protocol (DAP), independently of Visual Studio Code. It can help determine whether a problem is occurring in the packaged debug adapter/runtime or in the Visual Studio Code extension integration.
+
+The simulator performs a basic debugging sequence through launch and shutdown:
+
+```text
+initialize
+launch
+setBreakpoints
+setExceptionBreakpoints
+configurationDone
+disconnect
+```
+
+### Finding the Installed Extension Directory
+
+Visual Studio Code normally installs extensions under:
+
+```text
+%USERPROFILE%\.vscode\extensions
+```
+
+Open that directory in File Explorer, or from PowerShell run:
+
+```powershell
+explorer "$env:USERPROFILE\.vscode\extensions"
+```
+
+Look for the CloudIDEaaS VSCode Debugger folder. Its name will include the publisher, extension name, version, and may include the target platform, for example:
+
+```text
+cloudideaas.cloudideaas-vscode-debugger-0.1.7-win32-x64
+```
+
+You can also locate the extension from Visual Studio Code:
+
+1. Open the **Extensions** view.
+2. Find **CloudIDEaaS VSCode Debugger** under installed extensions.
+3. Open the extension's gear/menu.
+4. Choose **Open Extension Folder** if that option is available.
+
+Once you have located the installed extension directory, open PowerShell in that directory. You should see folders such as `bin`, `dist`, `resources`, and `scripts`.
+
+### Running the Troubleshooting Script
+
+From the installed extension directory, run:
+
+```powershell
+.\scripts\Test-DebugAdapter.ps1 `
+    -DebuggerPath ".\bin\VSCodeDebugger.exe" `
+    -Url "http://localhost:8000/index.html" `
+    -WebRoot "C:\Path\To\Your\Project"
+```
+
+To test a specific breakpoint, also provide the source file and line number:
+
+```powershell
+.\scripts\Test-DebugAdapter.ps1 `
+    -DebuggerPath ".\bin\VSCodeDebugger.exe" `
+    -Url "http://localhost:8000/index.html" `
+    -WebRoot "C:\Path\To\Your\Project" `
+    -BreakpointFile "C:\Path\To\Your\Project\index.html" `
+    -BreakpointLine 25
+```
+
+If `-BreakpointFile` is omitted, the script uses `index.html` under the specified `WebRoot`.
+
+### Interpreting the Results
+
+If the script successfully completes the DAP launch sequence and disconnects normally, the packaged C# debug adapter and its supporting runtime are able to start and respond to the basic DAP requests. A problem that occurs only when debugging through Visual Studio Code is therefore more likely to involve extension integration, launch configuration, Chrome startup, or the specific debugging scenario.
+
+If the script fails before completing the launch sequence, include its console output when reporting the issue. This can help identify missing runtime files, adapter startup failures, DAP request failures, or other packaging/runtime problems.
+
 ## Reporting Issues
 
 When reporting a debugger problem, please include:
@@ -131,6 +212,7 @@ When reporting a debugger problem, please include:
 - Relevant `launch.json` configuration.
 - Whether the issue occurs during launch, breakpoint setup, stepping, variable inspection, or shutdown.
 - Any relevant extension/debug-adapter log output.
+- Output from `scripts\Test-DebugAdapter.ps1`, if the troubleshooting script also reproduces the problem.
 
 ## Release Notes
 
