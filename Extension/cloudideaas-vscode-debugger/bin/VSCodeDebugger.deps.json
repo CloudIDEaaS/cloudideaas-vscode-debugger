@@ -4440,6 +4440,14 @@
           }
         }
       },
+      "Fare/1.0.3.0": {
+        "runtime": {
+          "Fare.dll": {
+            "assemblyVersion": "1.0.3.0",
+            "fileVersion": "1.0.3.0"
+          }
+        }
+      },
       "Microsoft.VisualStudio.TextTemplating.12.0/12.0.0.0": {
         "runtime": {
           "Microsoft.VisualStudio.TextTemplating.12.0.dll": {
@@ -6950,6 +6958,11 @@
       "sha512": ""
     },
     "CsTransformationParserLibrary/5.0.0.238": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Fare/1.0.3.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

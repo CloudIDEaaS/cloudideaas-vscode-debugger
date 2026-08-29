@@ -63,13 +63,14 @@
         </None>
     </ItemGroup>
     
-    <Target Name="CopyReadmeToVSCodeExtension" AfterTargets="Build">
+    <Target Name="CopyMarkdowns" AfterTargets="Build">
 
         <PropertyGroup>
             <VSCodeExtensionDirectory>$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger</VSCodeExtensionDirectory>
         </PropertyGroup>
 
         <Copy SourceFiles="$(MSBuildProjectDirectory)\README.md" DestinationFolder="$(VSCodeExtensionDirectory)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="$(VSCodeExtensionDirectory)\CHANGELOG.md" DestinationFolder="$(MSBuildProjectDirectory)" SkipUnchangedFiles="true" />
 
     </Target>
     <Target Name="CopyToVSCodeExtension" AfterTargets="CopyFilesToOutputDirectory">

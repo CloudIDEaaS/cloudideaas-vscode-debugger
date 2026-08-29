@@ -122,6 +122,116 @@ Also set the following in VSCodeDebugger.csproj to false as such:
 You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
 
 
+
+## Building and Publishing the Extension
+
+The extension project includes npm scripts that automate the release workflow. Run these commands from the `Extension\cloudideaas-vscode-debugger` directory.
+
+The normal release workflow can:
+
+```text
+Bump the extension version
+        |
+        v
+Publish the C# debug adapter as Release / x64
+        |
+        v
+Bundle extension.js with esbuild
+        |
+        v
+List the files that VSCE will package
+        |
+        v
+Create the win32-x64 VSIX
+        |
+        v
+Optionally publish the VSIX to the Visual Studio Marketplace
+```
+
+### Create a VSIX Without Publishing
+
+For a normal patch release:
+
+```cmd
+npm run release:patch
+```
+
+This bumps the patch version, publishes the C# debug adapter, bundles the extension, displays the VSCE file list, and creates the VSIX without publishing it to the Marketplace.
+
+For minor or major releases:
+
+```cmd
+npm run release:minor
+npm run release:major
+```
+
+### Create a VSIX Without Rebuilding the C# Adapter
+
+If the C# debug adapter has already been published and the extension's `bin` directory contains the files you want to package, use the `skip-adapter` variant:
+
+```cmd
+npm run release:patch:skip-adapter
+```
+
+Minor and major versions are also available:
+
+```cmd
+npm run release:minor:skip-adapter
+npm run release:major:skip-adapter
+```
+
+These commands leave the existing adapter files in place and perform the version bump, JavaScript bundle, VSCE file listing, and VSIX packaging.
+
+### Package and Publish to the Marketplace
+
+To perform the complete workflow and publish the resulting VSIX to the Visual Studio Marketplace:
+
+```cmd
+npm run publish:patch
+```
+
+For minor or major releases:
+
+```cmd
+npm run publish:minor
+npm run publish:major
+```
+
+The publish scripts package the extension first and then publish that generated VSIX.
+
+### Publish Without Rebuilding the C# Adapter
+
+If the adapter files are already prepared and tested:
+
+```cmd
+npm run publish:patch:skip-adapter
+```
+
+Minor and major variants are also available:
+
+```cmd
+npm run publish:minor:skip-adapter
+npm run publish:major:skip-adapter
+```
+
+### Recommended Release Workflow
+
+For a release that you want to test before publishing:
+
+```cmd
+npm run release:patch
+```
+
+Install and test the generated VSIX locally before publishing it.
+
+For a fully automated release when the adapter and extension have already been validated:
+
+```cmd
+npm run publish:patch
+```
+
+Use `minor` or `major` in place of `patch` when appropriate.
+
 ## Troubleshooting the Debug Adapter
 
 The extension includes a PowerShell troubleshooting script at:
