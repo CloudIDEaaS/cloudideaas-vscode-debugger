@@ -20,6 +20,7 @@ function activate(context) {
 
 		// 2. Fire the debugger now that a file context is active
 		await vscode.commands.executeCommand('workbench.action.debug.start');
+		await vscode.commands.executeCommand('workbench.debug.action.focusRepl');
 	});
 
 	context.subscriptions.push(startCommandHandler);
@@ -29,7 +30,7 @@ function activate(context) {
 		// 1. Shift focus from the sidebar back to the active text editor window
 		await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
 
-		// 2. Fire the debugger now that a file context is active
+		// 2. Stop the debugger
 		await vscode.commands.executeCommand('workbench.action.debug.stop');
 	});
 
@@ -70,6 +71,9 @@ function activate(context) {
 					);
 					return undefined;
 				}
+
+				console.error(`[ADAPTER PATH] ${adapterPath}`);
+				console.error(`[WORKSPACE] ${workspaceFolder}`);
 
 				return new vscode.DebugAdapterExecutable(
 					adapterPath,
@@ -142,7 +146,6 @@ function activate(context) {
 	);
 }
 
-// This method is called when your extension is deactivated
 function deactivate() {
 	console.log("Deactivating extension");
 }
@@ -150,4 +153,4 @@ function deactivate() {
 module.exports = {
 	activate,
 	deactivate
-}
+};

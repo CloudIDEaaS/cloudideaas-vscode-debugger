@@ -284,6 +284,70 @@ You can also locate the extension from Visual Studio Code:
 
 Once you have located the installed extension directory, open PowerShell in that directory. You should see folders such as `bin`, `dist`, `resources`, and `scripts`.
 
+### Copying Development Builds to the Installed Extension
+
+When developing or troubleshooting the C# debug adapter, it can be useful to copy the latest Visual Studio build output directly into the `bin` directory of an installed CloudIDEaaS VSCode Debugger extension. This allows changes to the C# adapter to be tested through the normally installed Visual Studio Code extension without rebuilding, packaging, publishing, and reinstalling the entire VSIX for every change.
+
+The standard Visual Studio Code extension directory is located under the current Windows user's profile:
+
+```text
+%USERPROFILE%\.vscode\extensions
+```
+
+In MSBuild, the equivalent user-independent path can be referenced using:
+
+```xml
+$(UserProfile)
+```
+
+Because Visual Studio Code includes the extension version in the installed directory name, define the version as an MSBuild property rather than embedding it throughout the project:
+
+```xml
+<PropertyGroup>
+    <InstalledVSCodeExtensionVersion>0.1.33</InstalledVSCodeExtensionVersion>
+</PropertyGroup>
+```
+
+The following target copies the current project build output into the installed extension after a successful build:
+
+```xml
+<Target Name="CopyToInstalledVSCodeExtension" AfterTargets="Build">
+    <PropertyGroup>
+        <InstalledVSCodeExtensionBin>$(UserProfile)\.vscode\extensions\cloudideaas.cloudideaas-vscode-debugger-$(InstalledVSCodeExtensionVersion)-win32-x64\bin</InstalledVSCodeExtensionBin>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(InstalledVSCodeExtensionBin)" />
+
+    <ItemGroup>
+        <InstalledExtensionFiles Include="$(TargetDir)*.*" />
+    </ItemGroup>
+
+    <Copy
+        SourceFiles="@(InstalledExtensionFiles)"
+        DestinationFolder="$(InstalledVSCodeExtensionBin)"
+        SkipUnchangedFiles="true"
+    />
+</Target>
+```
+
+For example, with:
+
+```xml
+<InstalledVSCodeExtensionVersion>0.1.33</InstalledVSCodeExtensionVersion>
+```
+
+the destination resolves to a path similar to:
+
+```text
+C:\Users\<user>\.vscode\extensions\cloudideaas.cloudideaas-vscode-debugger-0.1.33-win32-x64\bin
+```
+
+When a new Marketplace version of the extension is installed, update `InstalledVSCodeExtensionVersion` to match the installed version.
+
+This technique intentionally copies only the current build output over the existing extension `bin` directory. It does not delete the destination directory first. This is important when the installed extension contains self-contained .NET runtime files or other packaged dependencies that are not present in a normal Visual Studio build output.
+
+This target is intended as a development and troubleshooting convenience. Production extension packages should continue to be created through the normal publish and VSIX packaging workflow.
+
 ### Running the Troubleshooting Script
 
 From the installed extension directory, run:

@@ -4,7 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0-windows</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>enable</Nullable> 
         <PlatformTarget>x64</PlatformTarget>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <SelfContained>true</SelfContained>
@@ -25,7 +25,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>cloudideaas-debugger.png</PackageIcon>
         <TrimUnusedAssemblies>true</TrimUnusedAssemblies>
-        <TrimmerExcludedAssemblies>Pluralize.NET.dll</TrimmerExcludedAssemblies>
+        <TrimmerExcludedAssemblies>Pluralize.NET.dll;Accessibility.dll</TrimmerExcludedAssemblies>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -67,6 +67,9 @@
             <Pack>True</Pack>
         </None>
     </ItemGroup>
+    <PropertyGroup>
+        <InstalledVSCodeExtensionVersion>0.1.33</InstalledVSCodeExtensionVersion>
+    </PropertyGroup>
 
     <Target Name="CopyMarkdowns" AfterTargets="Build">
 
@@ -79,24 +82,42 @@
 
     </Target>
 
-    <Target Name="CopyToVSCodeExtension"
-            AfterTargets="CopyFilesToOutputDirectory"
-            Condition="'$(IsPublishing)' != 'true'">
-
+    <Target Name="CopyToInstalledVSCodeExtension" AfterTargets="Build">
         <PropertyGroup>
-            <VSCodeExtensionBin>$(MSBuildProjectDirectory)\Extension\cloudideaas-vscode-debugger\bin</VSCodeExtensionBin>
+            <InstalledVSCodeExtensionBin>$(UserProfile)\.vscode\extensions\cloudideaas.cloudideaas-vscode-debugger-$(InstalledVSCodeExtensionVersion)-win32-x64\bin</InstalledVSCodeExtensionBin>
         </PropertyGroup>
 
-        <MakeDir Directories="$(VSCodeExtensionBin)" />
+        <MakeDir Directories="$(InstalledVSCodeExtensionBin)" />
 
         <ItemGroup>
-            <DebugAdapterFiles Include="$(TargetDir)*.*" />
+            <InstalledExtensionFiles Include="$(TargetDir)*.*" />
         </ItemGroup>
 
-        <Copy SourceFiles="@(DebugAdapterFiles)" DestinationFolder="$(VSCodeExtensionBin)" SkipUnchangedFiles="true" />
-
+        <Copy
+            SourceFiles="@(InstalledExtensionFiles)"
+            DestinationFolder="$(InstalledVSCodeExtensionBin)"
+            SkipUnchangedFiles="false"
+    />
     </Target>
+    
+    <Target Name="CopyToInstalledVSCodeExtension" AfterTargets="Build">
+        <PropertyGroup>
+            <InstalledVSCodeExtensionBin>$(UserProfile)\.vscode\extensions\cloudideaas.cloudideaas-vscode-debugger-0.1.33-win32-x64\bin</InstalledVSCodeExtensionBin>
+        </PropertyGroup>
 
+        <MakeDir Directories="$(InstalledVSCodeExtensionBin)" />
+
+        <ItemGroup>
+            <InstalledExtensionFiles Include="$(TargetDir)*.*" />
+        </ItemGroup>
+
+        <Copy
+            SourceFiles="@(InstalledExtensionFiles)"
+            DestinationFolder="$(InstalledVSCodeExtensionBin)"
+            SkipUnchangedFiles="true"
+    />
+    </Target>
+    
     <Target Name="RunTrimmerOnBuild"
             AfterTargets="CopyToVSCodeExtension"
             Condition="'$(TrimUnusedAssemblies)' == 'true' AND '$(IsPublishing)' != 'true'">

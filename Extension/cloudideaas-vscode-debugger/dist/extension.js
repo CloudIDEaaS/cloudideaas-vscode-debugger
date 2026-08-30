@@ -7,6 +7,7 @@ function activate(context) {
   const startCommandHandler = vscode.commands.registerCommand("cloudideaas-vscode-debugger.start", async () => {
     await vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup");
     await vscode.commands.executeCommand("workbench.action.debug.start");
+    await vscode.commands.executeCommand("workbench.debug.action.focusRepl");
   });
   context.subscriptions.push(startCommandHandler);
   const stopCommandHandler = vscode.commands.registerCommand("cloudideaas-vscode-debugger.stop", async () => {
@@ -43,6 +44,8 @@ function activate(context) {
           );
           return void 0;
         }
+        console.error(`[ADAPTER PATH] ${adapterPath}`);
+        console.error(`[WORKSPACE] ${workspaceFolder}`);
         return new vscode.DebugAdapterExecutable(
           adapterPath,
           [workspaceFolder]

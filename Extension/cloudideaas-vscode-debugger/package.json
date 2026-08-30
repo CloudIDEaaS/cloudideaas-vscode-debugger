@@ -2,7 +2,7 @@
   "name": "cloudideaas-vscode-debugger",
   "displayName": "CloudIDEaaS JavaScript Debugger",
   "description": "A minimal debugger/web server that works on F5, no more ice age style console.log debugging or relying on browser dev tools. Works by convention over configuration",
-  "version": "0.1.31",
+  "version": "0.1.35",
   "publisher": "CloudIDEaaS",
   "engines": {
     "vscode": "^1.108.0"

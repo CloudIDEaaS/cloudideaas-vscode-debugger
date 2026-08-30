@@ -38,10 +38,12 @@ namespace ChromeDebugger
         private CdpConnection? cdpConnection;
         private Task dotNetTask;
         private bool relaunching;
+        private IManagedLockObject logLockObject;
 
         public StandardStreamService(LogWriter logWriter, string workingDirectory)
         {
             logsDirectory = new DirectoryInfo(Path.Combine(workingDirectory, @".vscode\logs"));
+            logLockObject = LockManager.CreateObject();
 
             cdpCancellationTokenSource = new CancellationTokenSource();
             dotNetCancellationTokenSource = new CancellationTokenSource();
@@ -130,7 +132,11 @@ namespace ChromeDebugger
 
                         this.vsCodeSettings = commandPacket.Arguments;
 
+                        WriteLine("About to send initialize response.");
+
                         this.outputWriter.WriteJsonCommandT(initializeResponse, true, WriteOutputMessage);
+
+                        WriteLine("Initialize response sent.");
                     }
                     break;
                 case "launch":
@@ -460,7 +466,7 @@ namespace ChromeDebugger
                         var line = Convert.ToInt32(args["line"]);
                         var column = args.TryGetValue("column", out var columnValue) ? Convert.ToInt32(columnValue) : 1;
                         var endLine = args.TryGetValue("endLine", out var endLineValue) ? Convert.ToInt32(endLineValue) : line;
-                        var scriptId = cdpConnection.FindScriptIdByPath(ConvertSourcePathToBrowserUrl(sourcePath, launchSettings["workspaceFolder"]?.ToString(), launchSettings["url"]?.ToString()));
+                        var scriptId = cdpConnection?.FindScriptIdByPath(ConvertSourcePathToBrowserUrl(sourcePath, launchSettings["workspaceFolder"]?.ToString(), launchSettings["url"]?.ToString()));
                         var breakpoints = new List<Dictionary<string, object>>();
 
                         if (!string.IsNullOrWhiteSpace(scriptId))
@@ -986,12 +992,16 @@ namespace ChromeDebugger
                         // the debugger configuration phase is complete, so navigate to the real
                         // application now.
                         //
+
                         url = launchSettings["url"]?.ToString() ?? throw new InvalidOperationException("Launch URL is not available.");
+                        SendDebugConsoleMessage($"Loading {url}");
 
                         await cdpConnection.SendCdpCommandAsync("Page.navigate", new
                         {
                             url = url
                         });
+
+                        SendDebugConsoleMessage("Application loaded. Debugging is active.");
 
                         break;
                     }
@@ -1046,16 +1056,22 @@ namespace ChromeDebugger
 
         private void WriteOutputMessage(string message)
         {
-            dapMessagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Output " + "*".Repeat(50) + "\r\n");
-            dapMessagesLogWriter.WriteLine("\r\n" + message + "\r\n");
+            using (logLockObject.Lock())
+            {
+                dapMessagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Output " + "*".Repeat(50) + "\r\n");
+                dapMessagesLogWriter.WriteLine("\r\n" + message + "\r\n");
+            }
         }
 
         private void WriteInputMessage(DapCommandPacket commandPacket)
         {
             var json = JsonExtensions.ToJsonText(commandPacket, true);
 
-            dapMessagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Input " + "*".Repeat(50) + "\r\n");
-            dapMessagesLogWriter.WriteLine("\r\n" + json + "\r\n");
+            using (logLockObject.Lock())
+            {
+                dapMessagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Input " + "*".Repeat(50) + "\r\n");
+                dapMessagesLogWriter.WriteLine("\r\n" + json + "\r\n");
+            }
         }
 
         private string? BuildBreakpointCondition(string? condition, string? hitCondition, string? logMessage)
@@ -1126,6 +1142,22 @@ namespace ChromeDebugger
         public void WritePacket(object packet)
         {
             this.outputWriter.WriteJsonCommandT(packet, true, WriteOutputMessage);
+        }
+
+        private void SendDebugConsoleMessage(string message)
+        {
+            var outputEvent = new DapEventPacket
+            {
+                Sequence = NextSequence(),
+                Event = "output",
+                Body = new Dictionary<string, object>
+                {
+                    { "category", "console" },
+                    { "output", message + Environment.NewLine }
+                }
+            };
+
+            this.outputWriter.WriteJsonCommandT(outputEvent, true, WriteOutputMessage);
         }
         private async Task<string> FindChromeTargetAsync(string targetUrl, string? fallbackUrl, string debuggerHost, int port, CancellationToken cancellationToken = default)
         {
@@ -1325,6 +1357,11 @@ namespace ChromeDebugger
 
         private async Task HandleLaunchAsync(string url, string workingDirectory)
         {
+            OutputWriteLine outputWriteLine = null!;
+            ErrorWriteLine errorWriteLine = null!;
+            string webSocketUrl;
+            Uri webSocketUri;
+            string chromeResponse;
             var chromeHandler = new ChromeCommandHandler();
             var dotNetHandler = new DotNetCommandHandler();
             var serverReadyResetEvent = new ManualResetEvent(false);
@@ -1335,17 +1372,27 @@ namespace ChromeDebugger
             var port = uri.Port;
             var errorCount = 0;
             var debuggerUri = new Uri($"http://127.0.0.1:9222");
-            OutputWriteLine outputWriteLine = null!;
-            ErrorWriteLine errorWriteLine = null!;
-            string webSocketUrl;
-            Uri webSocketUri;
-            string chromeResponse;
+            var adapterPath = Environment.ProcessPath ?? string.Empty;
+            var adapterVersion = FileVersionInfo.GetVersionInfo(adapterPath).FileVersion ?? "Unknown";
+            var extensionVersion = adapterPath.RegexGet(
+                @"cloudideaas\.cloudideaas-vscode-debugger-(?<version>\d+\.\d+\.\d+)-win32-x64",
+                "version"
+            );
+
+            if (string.IsNullOrWhiteSpace(extensionVersion))
+            {
+                extensionVersion = "Development";
+            }
+
+            SendDebugConsoleMessage($"Adapter version: {adapterVersion}");
+            SendDebugConsoleMessage($"Extension version: {extensionVersion}");
 
             this.usedPort = port;
 
             vsCodeDirectory = Path.Combine(workingDirectory, @".vscode");
-            userDataDirectory = Path.Combine(vsCodeDirectory, "chrome-debug-profile");
-            debuggerLogDirectory = Path.Combine(vsCodeDirectory, @"chrome-debug-profile");
+            userDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CloudIDEaaS", "VSCodeDebugger", "chrome-profile");
+
+            Directory.CreateDirectory(userDataDirectory);
 
             chromeHandler.OutputWriteLine = (f, e) =>
             {
@@ -1418,6 +1465,8 @@ namespace ChromeDebugger
             dotNetHandler.OutputWriteLine = outputWriteLine;
             dotNetHandler.ErrorWriteLine = errorWriteLine;
 
+            SendDebugConsoleMessage($"Starting web server on port {port}...");
+
             dotNetTask = Task.Run(() =>
             {
                 dotNetHandler.Serve(workingDirectory, port);
@@ -1429,6 +1478,8 @@ namespace ChromeDebugger
                 DebugUtils.Break();
             }
 
+            SendDebugConsoleMessage($"Web server is ready at {uri.Scheme}://{uri.Host}:{port}"); 
+
             chromeHandler.ProcessStarted += (s, e) => chromeStartedResetEvent.Set();
 
             //
@@ -1436,23 +1487,27 @@ namespace ChromeDebugger
             // configurationDone, after VS Code has sent all initial breakpoint configuration.
             //
 
-            if (!Directory.Exists(userDataDirectory))
-            {
-                Directory.CreateDirectory(userDataDirectory);
-            }
+            WriteLine($"Chrome profile directory: {userDataDirectory}");
+            WriteLine($"Chrome profile exists: {Directory.Exists(userDataDirectory)}");
+            WriteLine($"Chrome debugger endpoint: {debuggerUri}");
+            WriteLine($"Chrome profile full path: {Path.GetFullPath(userDataDirectory)}");
 
+            SendDebugConsoleMessage("Launching Chrome...");
             chromeHandler.LaunchDebugMode(new Uri("about:blank"), debuggerUri, new DirectoryInfo(userDataDirectory));
 
             await Task.Run(() => chromeStartedResetEvent.WaitOne(10_000));
 
+            SendDebugConsoleMessage("Waiting for Chrome debugging endpoint...");
             chromeResponse = await WaitForChromeAsync(debuggerUri.Host, debuggerUri.Port);
+            SendDebugConsoleMessage("Chrome debugging endpoint is ready.");
 
             webSocketUrl = await FindChromeTargetAsync("about:blank", url, debuggerUri.Host, debuggerUri.Port);
             webSocketUri = new Uri(webSocketUrl);
 
-            cdpConnection = new CdpConnection(logWriter, cdpMessagesLogWriter);
+            cdpConnection = new CdpConnection(logWriter, logLockObject, cdpMessagesLogWriter, logsDirectory);
 
             await cdpConnection.ConnectAsync(webSocketUri, cdpCancellationTokenSource.Token, this);
+            SendDebugConsoleMessage("Connected to Chrome DevTools.");
 
             //
             // 7. Enable the CDP domains we need.
@@ -1465,6 +1520,8 @@ namespace ChromeDebugger
             {
                 maxDepth = 32
             });
+
+            SendDebugConsoleMessage("Debugger is ready. Waiting for breakpoint configuration...");
         }
 
         private bool KillAnyDotNetServeInstance(int port)
@@ -1496,49 +1553,53 @@ namespace ChromeDebugger
             {
                 var platformProcess = process.GetPlatformProcess();
                 var commandLine = platformProcess.CommandLine;
-                var processPort = commandLine.RegexGet(@"serve --port (?<port>\d+?)$", "port");
 
-                if (processPort != null && int.TryParse(processPort, out int parsedPort) && parsedPort == port)
+                if (commandLine != null)
                 {
-                    process.Kill();
+                    var processPort = commandLine.RegexGet(@"serve --port (?<port>\d+?)$", "port");
 
-                    WriteLine("Killed dotnet process with PID {0} that is using port {1}.", process.Id, port);
-
-                    dotNetHandler.OutputWriteLine = outputWriteLine;
-                    dotNetHandler.ErrorWriteLine = errorWriteLine;
-
-                    if (relaunch)
+                    if (processPort != null && int.TryParse(processPort, out int parsedPort) && parsedPort == port)
                     {
-                        using (lockObject.Lock())
+                        process.Kill();
+
+                        WriteLine("Killed dotnet process with PID {0} that is using port {1}.", process.Id, port);
+
+                        dotNetHandler.OutputWriteLine = outputWriteLine;
+                        dotNetHandler.ErrorWriteLine = errorWriteLine;
+
+                        if (relaunch)
                         {
-                            if (this.relaunching)
+                            using (lockObject.Lock())
                             {
-                                return false;
+                                if (this.relaunching)
+                                {
+                                    return false;
+                                }
+
+                                this.relaunching = true;
                             }
 
-                            this.relaunching = true;
+                            dotNetTask = Task.Run(() =>
+                            {
+                                try
+                                {
+                                    if (!dotNetHandler.HasExited)
+                                    {
+                                        dotNetHandler.Kill();
+                                    }
+
+                                    dotNetHandler.Serve(workingDirectory, port);
+                                }
+                                finally
+                                {
+                                    using (lockObject.Lock())
+                                    {
+                                        this.relaunching = false;
+                                    }
+                                }
+
+                            }, dotNetCancellationTokenSource.Token);
                         }
-
-                        dotNetTask = Task.Run(() =>
-                        {
-                            try
-                            {
-                                if (!dotNetHandler.HasExited)
-                                {
-                                    dotNetHandler.Kill();
-                                }
-
-                                dotNetHandler.Serve(workingDirectory, port);
-                            }
-                            finally
-                            {
-                                using (lockObject.Lock())
-                                {
-                                    this.relaunching = false;
-                                }
-                            }
-
-                        }, dotNetCancellationTokenSource.Token);
                     }
                 }
             }
@@ -1563,12 +1624,30 @@ namespace ChromeDebugger
 
         public void WriteLine(string value)
         {
-            logWriter.WriteLine(value);
+            using (logLockObject.Lock())
+            {
+                logsDirectory.Refresh();
+
+                if (!logsDirectory.Exists)
+                {
+                    logsDirectory.Create();
+                }
+
+                logWriter.WriteLine(value);
+            }
         }
 
         protected override void HandleExcepion(Exception ex)
         {
-            logWriter.WriteLine(ex.ToString());
+            using (logLockObject.Lock())
+            {
+                if (!logsDirectory.Exists)
+                {
+                    logsDirectory.Create();
+                }
+
+                logWriter.WriteLine(ex.ToString());
+            }
         }
 
         public void WriteLine()
@@ -1578,7 +1657,15 @@ namespace ChromeDebugger
 
         public void WriteLine(string format, params object[] args)
         {
-            logWriter.WriteLine(format, args);
+            using (logLockObject.Lock())
+            {
+                if (!logsDirectory.Exists)
+                {
+                    logsDirectory.Create();
+                }
+
+                logWriter.WriteLine(format, args);
+            }
         }
     }
 }

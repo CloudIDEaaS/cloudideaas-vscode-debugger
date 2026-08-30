@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VSCodeDebugger": {
+      "commandName": "Project",
+      "commandLineArgs": "\"c:\\CloudIDEaaS\\publishing\\ConsciousIntellectualRap\\Courses\\001. Introductory Course to Music Reality\\001. Introduction to Music Reality\\Lessons\\002. The Current State of the Hip Hop, Rap, and Recording Industries\\DebugSlideShow\""
+    }
+  }
+}

@@ -36,12 +36,16 @@ namespace VSCodeDebugger
         private readonly ConcurrentDictionary<string, int> dapBreakpointIds = new();
         private int nextDapBreakpointId;
         private LogWriter logWriter;
+        private IManagedLockObject logLockObject;
         private LogWriter messagesLogWriter;
+        private DirectoryInfo logsDirectory;
 
-        public CdpConnection(LogWriter logWriter, LogWriter messagesLogWriter)
+        public CdpConnection(LogWriter logWriter, IManagedLockObject logLockObject, LogWriter messagesLogWriter, DirectoryInfo logsDirectory)
         {
             this.logWriter = logWriter;
+            this.logLockObject = logLockObject;
             this.messagesLogWriter = messagesLogWriter;
+            this.logsDirectory = logsDirectory;
         }
 
         public JArray? PausedCallFrames
@@ -697,14 +701,20 @@ namespace VSCodeDebugger
 
         private void WriteOutputMessage(string message)
         {
-            messagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Output " + "*".Repeat(50) + "\r\n");
-            messagesLogWriter.WriteLine("\r\n" + message + "\r\n");
+            using (logLockObject.Lock())
+            {
+                messagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Output " + "*".Repeat(50) + "\r\n");
+                messagesLogWriter.WriteLine("\r\n" + message + "\r\n");
+            }
         }
 
         private void WriteInputMessage(string message)
         {
-            messagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Input " + "*".Repeat(50) + "\r\n");
-            messagesLogWriter.WriteLine("\r\n" + message + "\r\n");
+            using (logLockObject.Lock())
+            {
+                messagesLogWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Input " + "*".Repeat(50) + "\r\n");
+                messagesLogWriter.WriteLine("\r\n" + message + "\r\n");
+            }
         }
 
         public void Write(string value)
@@ -719,7 +729,15 @@ namespace VSCodeDebugger
 
         public void WriteLine(string value)
         {
-            logWriter.WriteLine(value);
+            using (logLockObject.Lock())
+            {
+                if (!logsDirectory.Exists)
+                {
+                    logsDirectory.Create();
+                }
+
+                logWriter.WriteLine(value);
+            }
         }
 
         public void WriteLine()

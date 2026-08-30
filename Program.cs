@@ -27,19 +27,32 @@ namespace ChromeDebugger
                 return;
             }
 
-            workingDirectory = args[0];
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
-            logPath = Path.Combine(args[0], @".vscode\logs\" + DateTime.Now.ToSortableShortDateTimeText() + "_VSCodeDebugger.log");
+            try
+            {
+                workingDirectory = args[0];
 
-            logWriter = new LogWriter(logPath);
+                logPath = Path.Combine(args[0], @".vscode\logs\" + DateTime.Now.ToSortableShortDateTimeText() + "_VSCodeDebugger.log");
 
-            VisualStudioExtensions.DebugAttach(false, true);
+                logWriter = new LogWriter(logPath);
 
-            streamService = new StandardStreamService(logWriter, workingDirectory);
+                VisualStudioExtensions.DebugAttach(false, true);
 
-            streamService.Start(parentProcess, currentDirectory);
+                streamService = new StandardStreamService(logWriter, workingDirectory);
 
-            streamService.Wait();
+                streamService.Start(parentProcess, currentDirectory);
+
+                Console.Error.WriteLine("About to enter streamService.Wait().");
+
+                streamService.Wait();
+
+                Console.Error.WriteLine("streamService.Wait() returned.");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Exception: " + ex.ToString());
+            }
         }
     }
 }

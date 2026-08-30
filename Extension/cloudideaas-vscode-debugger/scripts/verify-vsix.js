@@ -166,16 +166,6 @@ function createTestWorkspace() {
     )
   );
 
-  fs.mkdirSync(
-    path.join(
-      workspaceDirectory,
-      ".vscode"
-    ),
-    {
-      recursive: true
-    }
-  );
-
   const htmlPath = path.join(
     workspaceDirectory,
     "index.html"
