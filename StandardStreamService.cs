@@ -1127,14 +1127,14 @@ namespace ChromeDebugger
         {
             this.outputWriter.WriteJsonCommandT(packet, true, WriteOutputMessage);
         }
-
-        private async Task<string> FindChromeTargetAsync(string targetUrl, string debuggerHost, int port, CancellationToken cancellationToken = default)
+        private async Task<string> FindChromeTargetAsync(string targetUrl, string? fallbackUrl, string debuggerHost, int port, CancellationToken cancellationToken = default)
         {
             using (var httpClient = new HttpClient())
             {
                 var endpoint = $"http://{debuggerHost}:{port}/json/list";
                 var json = await httpClient.GetStringAsync(endpoint, cancellationToken);
                 var targets = JArray.Parse(json);
+                JObject? firstPageTarget = null;
 
                 WriteOutputMessage(json);
 
@@ -1148,17 +1148,11 @@ namespace ChromeDebugger
                         continue;
                     }
 
-                    //
-                    // We only want actual browser pages.
-                    //
                     if (target["type"]?.ToString() != "page")
                     {
                         continue;
                     }
 
-                    //
-                    // Get the target URL.
-                    //
                     url = target["url"]?.ToString()!;
 
                     if (string.IsNullOrWhiteSpace(url))
@@ -1166,28 +1160,82 @@ namespace ChromeDebugger
                         continue;
                     }
 
-                    //
-                    // Is this the page we're trying to debug?
-                    //
-                    if (!UrlsMatch(url, targetUrl))
+                    var webSocketUrl = target["webSocketDebuggerUrl"]?.ToString();
+
+                    if (string.IsNullOrWhiteSpace(webSocketUrl))
                     {
                         continue;
                     }
 
-                    //
-                    // This is the important piece:
-                    // the WebSocket endpoint for this page.
-                    //
-                    var webSocketUrl = target["webSocketDebuggerUrl"]?.ToString();
+                    firstPageTarget ??= target;
 
-                    if (!string.IsNullOrWhiteSpace(webSocketUrl))
+                    //
+                    // First preference is the page Chrome was explicitly launched with.
+                    //
+                    if (UrlsMatch(url, targetUrl))
                     {
+                        WriteLine("Found preferred Chrome debugging target: {0}", url);
+
                         return webSocketUrl;
                     }
                 }
+
+                //
+                // Chrome can navigate away from about:blank before its debugging
+                // target is queried. If that happened, look for the application's
+                // requested URL instead.
+                //
+                if (!string.IsNullOrWhiteSpace(fallbackUrl))
+                {
+                    foreach (var targetToken in targets)
+                    {
+                        var target = targetToken as JObject;
+
+                        if (target == null || target["type"]?.ToString() != "page")
+                        {
+                            continue;
+                        }
+
+                        var url = target["url"]?.ToString();
+                        var webSocketUrl = target["webSocketDebuggerUrl"]?.ToString();
+
+                        if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(webSocketUrl))
+                        {
+                            continue;
+                        }
+
+                        if (UrlsMatch(url, fallbackUrl))
+                        {
+                            WriteLine("Preferred Chrome target '{0}' was not found. Using application target: {1}", targetUrl, url);
+
+                            return webSocketUrl;
+                        }
+                    }
+                }
+
+                //
+                // Last resort: if Chrome has exactly one normal page target, use it.
+                // Chrome's internal browser_ui targets are intentionally ignored.
+                //
+                var pageTargets = targets
+                    .OfType<JObject>()
+                    .Where(t => t["type"]?.ToString() == "page")
+                    .Where(t => !string.IsNullOrWhiteSpace(t["webSocketDebuggerUrl"]?.ToString()))
+                    .ToList();
+
+                if (pageTargets.Count == 1)
+                {
+                    var target = pageTargets[0];
+                    var url = target["url"]?.ToString() ?? string.Empty;
+                    var webSocketUrl = target["webSocketDebuggerUrl"]!.ToString();
+
+                    WriteLine("Preferred Chrome target '{0}' was not found. Using the only available page target: {1}", targetUrl, url);
+
+                    return webSocketUrl;
+                }
             }
 
-            throw new InvalidOperationException($"Could not find a Chrome debugging target for '{targetUrl}'.");
+            throw new InvalidOperationException($"Could not find a Chrome debugging target for '{targetUrl}' or '{fallbackUrl}'.");
         }
 
         private string ConvertSourcePathToBrowserUrl(string sourcePath, string? workspaceFolder, string? applicationUrl)
@@ -1352,7 +1400,7 @@ namespace ChromeDebugger
                 if (error == "dotnet failed with ExitCode=2" || error.RegexIsMatch(@"Unexpected error: System.IO.IOException: Failed to bind to address (?<address>.*?): address already in use."))
                 {
                     var address = error.RegexGet(@"Unexpected error: System.IO.IOException: Failed to bind to address (?<address>.*?): address already in use.", "address");
-                    var flowControl = KillRelaunchDotNetServe(workingDirectory, dotNetHandler, lockObject, port, relaunching, outputWriteLine, errorWriteLine, true);
+                    var flowControl = KillRelaunchDotNetServe(workingDirectory, dotNetHandler, lockObject, port, outputWriteLine, errorWriteLine, true);
 
                     if (!flowControl)
                     {
@@ -1399,7 +1447,7 @@ namespace ChromeDebugger
 
             chromeResponse = await WaitForChromeAsync(debuggerUri.Host, debuggerUri.Port);
 
-            webSocketUrl = await FindChromeTargetAsync("about:blank", debuggerUri.Host, debuggerUri.Port);
+            webSocketUrl = await FindChromeTargetAsync("about:blank", url, debuggerUri.Host, debuggerUri.Port);
             webSocketUri = new Uri(webSocketUrl);
 
             cdpConnection = new CdpConnection(logWriter, cdpMessagesLogWriter);
@@ -1440,7 +1488,7 @@ namespace ChromeDebugger
             return true;
         }
 
-        private bool KillRelaunchDotNetServe(string workingDirectory, DotNetCommandHandler dotNetHandler, IManagedLockObject lockObject, int port, bool relaunching, OutputWriteLine outputWriteLine, ErrorWriteLine errorWriteLine, bool relaunch = false)
+        private bool KillRelaunchDotNetServe(string workingDirectory, DotNetCommandHandler dotNetHandler, IManagedLockObject lockObject, int port, OutputWriteLine outputWriteLine, ErrorWriteLine errorWriteLine, bool relaunch = false)
         {
             var dotNetProcesses = Process.GetProcessesByName("dotnet").Where(p => p.Id != dotNetHandler.ProcessId).ToList();
 
@@ -1463,26 +1511,31 @@ namespace ChromeDebugger
                     {
                         using (lockObject.Lock())
                         {
-                            if (relaunching)
+                            if (this.relaunching)
                             {
                                 return false;
                             }
 
-                            relaunching = true;
+                            this.relaunching = true;
                         }
 
                         dotNetTask = Task.Run(() =>
                         {
-                            if (!dotNetHandler.HasExited)
+                            try
                             {
-                                dotNetHandler.Kill();
+                                if (!dotNetHandler.HasExited)
+                                {
+                                    dotNetHandler.Kill();
+                                }
+
+                                dotNetHandler.Serve(workingDirectory, port);
                             }
-
-                            dotNetHandler.Serve(workingDirectory, port);
-
-                            using (lockObject.Lock())
+                            finally
                             {
-                                relaunching = false;
+                                using (lockObject.Lock())
+                                {
+                                    this.relaunching = false;
+                                }
                             }
 
                         }, dotNetCancellationTokenSource.Token);

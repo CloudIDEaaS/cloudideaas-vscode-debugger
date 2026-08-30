@@ -117,7 +117,9 @@ Current limitations may include:
 If you want to contribute but not include dependent projects, change references to Extension\cloudideaas-vscode-debugger\bin\
 Also set the following in VSCodeDebugger.csproj to false as such:
 
+```xml
 <TrimUnusedAssemblies>false</TrimUnusedAssemblies>
+```
 
 You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
 
