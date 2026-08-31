@@ -1,48 +1,44 @@
-# CloudIDEaaS VSCode Debugger
+# CloudIDEaaS JavaScript Debugger
 
-[![Version](https://vsmarketplacebadges.dev/version/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
-[![Installs](https://vsmarketplacebadges.dev/installs/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
-[![Downloads](https://vsmarketplacebadges.dev/downloads/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
-[![Rating](https://vsmarketplacebadges.dev/rating/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
+[badges]
 
-A lightweight Visual Studio Code debugger for browser-based JavaScript, TypeScript, and HTML projects.
+**Press F5 and debug your browser JavaScript directly from Visual Studio Code.**
 
-CloudIDEaaS VSCode Debugger is designed around **convention over configuration**: start debugging from VS Code, launch the local web application and Chrome debugging session, set breakpoints, step through code, and inspect runtime values without relying on `console.log` or constantly switching to browser DevTools.
+CloudIDEaaS JavaScript Debugger gives you a straightforward debugging workflow...
+
+Built around **convention over configuration**, it's designed for developers who want to spend their time debugging their application—not debugging their debugging environment.
+
+## JavaScript Debugging Without the Debugging Hassle
+
+Press **F5** and CloudIDEaaS starts your local web server, launches Chrome, connects the debugger, configures your breakpoints, and loads your application.
+
+![CloudIDEaaS JavaScript Debugger for Visual Studio Code paused at a JavaScript breakpoint in Chrome, showing the call stack, variable values, debugging controls, and Debug Console](Media/cloudideaas-javascript-debugger-breakpoint.jpg)
+
+Set breakpoints, step through your JavaScript, inspect variables and call stacks, and evaluate your application directly from Visual Studio Code.
 
 ## Features
 
-- Launch browser debugging directly from Visual Studio Code.
-- Starts a local web server for the current workspace.
-- Launches Chrome with the Chrome DevTools Protocol (CDP) enabled.
-- Supports source breakpoints.
-- Supports conditional breakpoints and exception breakpoint configuration.
-- Step over, step into, and step out.
-- Continue and pause execution.
-- View call stacks and scopes.
-- Inspect local and object variable values.
-- Evaluate expressions while debugging.
-- Modify supported variable values.
-- View loaded JavaScript sources.
-- Handles breakpoint resolution after the application is loaded.
-- Editor-title Start Debugging and Stop Debugging buttons.
+- **F5 browser debugging** — Start your web application and Chrome debugging session directly from VS Code.
+- **Built-in local web server** — Get straightforward JavaScript and HTML projects running without configuring a separate development server.
+- **Startup breakpoints** — Breakpoints are configured before your application loads, helping you catch problems in startup code.
+- **Full stepping controls** — Step over, step into, step out, continue, and pause execution.
+- **Runtime inspection** — View call stacks, scopes, local variables, and object values while your application is running.
+- **Expression evaluation** — Evaluate expressions and modify supported variable values while paused.
+- **Advanced breakpoints** — Supports source breakpoints, conditional breakpoints, and exception breakpoint configuration.
+- **Chrome DevTools Protocol** — Communicates directly with Chrome through CDP while providing the VS Code debugging experience.
 
 ## Getting Started
 
-Read our free online book on [![Visual Studio Code Browser Debugging from the Ground Up](Media/Book.png)](https://publications.lavedajones.com/vscode-debugger/index.html)
-[https://publications.lavedajones.com/vscode-debugger/index.html](https://publications.lavedajones.com/vscode-debugger/index.html)
+### Start Debugging
 
-for a complete guide to using and understanding the debugger.
-
-Create a VS Code debug configuration using the `cloudideaas-vscode-debugger` debugger type and specify the URL for the page you want to debug.
-
-Example `.vscode/launch.json`:
+Create a `.vscode/launch.json` file with a CloudIDEaaS debugger configuration:
 
 ```json
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Chrome Explicit",
+            "name": "Debug in Chrome",
             "type": "cloudideaas-vscode-debugger",
             "request": "launch",
             "url": "http://localhost:8000/index.html"
@@ -51,21 +47,27 @@ Example `.vscode/launch.json`:
 }
 ```
 
-Set a breakpoint in your browser-side code and press **F5**, or use the Start Debugging button in the editor title area.
+Set a breakpoint in your JavaScript and press **F5**.
 
-The debugger launches Chrome initially without loading the application, establishes the debugging connection, configures your breakpoints, and then navigates to the requested URL. This allows breakpoints in startup code to be active before the application begins executing.
+CloudIDEaaS starts the local web server, launches Chrome, connects the debugger, configures your breakpoints, and then loads your application.
+
+### Want to Learn More?
+
+Read our free online book, **Visual Studio Code Browser Debugging from the Ground Up**, for a complete guide to using the debugger and understanding how browser debugging works.
 
 ## Requirements
 
-The initial Marketplace release is intended for **64-bit Windows**.
+- **Windows:** 64-bit Windows (x64)
+- **Visual Studio Code:** Version 1.108.0 or later
+- **Browser:** Google Chrome
 
-The extension includes its C# debug adapter and supporting runtime assemblies in the extension package. Chrome must be available on the system for browser debugging.
+The extension includes the CloudIDEaaS C# debug adapter and its required runtime components. No separate .NET installation is required.
 
 ## Debug Configuration
 
 ### `url`
 
-The application URL to launch and debug.
+The URL of the web application you want to launch and debug.
 
 Example:
 
@@ -85,7 +87,7 @@ Example:
 
 ## How It Works
 
-The extension provides the Visual Studio Code integration layer while a C# debug adapter communicates with VS Code using the Debug Adapter Protocol (DAP). The adapter communicates with Chrome using the Chrome DevTools Protocol (CDP).
+CloudIDEaaS keeps browser debugging straightforward while using the same industry-standard protocols behind modern debugging tools.
 
 ```text
 Visual Studio Code
@@ -99,31 +101,38 @@ CloudIDEaaS C# Debug Adapter
       Chrome
 ```
 
-This architecture allows VS Code breakpoints, stepping, scopes, variables, expression evaluation, and other debugging operations to be translated into Chrome debugging operations.
+The extension communicates with Visual Studio Code using the **Debug Adapter Protocol (DAP)** and with Chrome using the **Chrome DevTools Protocol (CDP)**.
+
+This allows you to use familiar VS Code debugging features while your application runs directly in Chrome.
 
 ## Known Limitations
 
-This is an early release and is not intended to duplicate every feature of Microsoft's JavaScript debugger.
+CloudIDEaaS is focused on providing a straightforward browser-debugging experience rather than duplicating every feature of larger JavaScript debugging platforms.
 
-Current limitations may include:
+Current limitations include:
 
-- Windows x64 only for the initial release.
+- Windows x64 only.
 - Advanced source-map and bundled-application scenarios may require additional support.
-- Multi-target debugging such as workers, multiple tabs, and complex browser target topologies is limited.
-- Advanced DAP features such as reverse debugging, instruction breakpoints, data breakpoints, and disassembly are not currently provided.
+- Multi-target debugging such as workers and multiple browser tabs is limited.
+- Reverse debugging, instruction breakpoints, data breakpoints, and disassembly are not currently supported.
 
 ## Contributing
 
-If you want to contribute but not include dependent projects, change references to Extension\cloudideaas-vscode-debugger\bin\
-Also set the following in VSCodeDebugger.csproj to false as such:
+Contributions are welcome.
+
+If you fork the project without the full CloudIDEaaS solution, update the project references to use the assemblies in:
+
+```text
+Extension\cloudideaas-vscode-debugger\bin\
+```
+
+Also disable dependency trimming in `VSCodeDebugger.csproj`:
 
 ```xml
 <TrimUnusedAssemblies>false</TrimUnusedAssemblies>
 ```
 
-You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
-
-
+If you want to contribute using the full solution and need help getting the development environment running, open an issue and we'll help you get started.
 
 ## Building and Publishing the Extension
 
