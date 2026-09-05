@@ -120,7 +120,7 @@ For a deeper technical walkthrough:
 
 ## Roadmap
 
-[![CloudIDEaaS JavaScript Debugger Roadmap](Media/roadmap/vscode-debugger-roadmap.png)](https://publications.lavedajones.com/vscode-debugger/roadmap.html)
+[![CloudIDEaaS JavaScript Debugger Roadmap](media/roadmap/cloudideaas-javascript-debugger-roadmap-hero.png)](https://publications.lavedajones.com/vscode-debugger/roadmap.html)
 
 CloudIDEaaS JavaScript Debugger started with a simple goal: **press F5 and debug browser JavaScript without turning the debugging environment into its own project.**
 

@@ -93,11 +93,7 @@
             <InstalledExtensionFiles Include="$(TargetDir)*.*" />
         </ItemGroup>
 
-        <Copy
-            SourceFiles="@(InstalledExtensionFiles)"
-            DestinationFolder="$(InstalledVSCodeExtensionBin)"
-            SkipUnchangedFiles="false"
-    />
+        <Copy SourceFiles="@(InstalledExtensionFiles)" DestinationFolder="$(InstalledVSCodeExtensionBin)" SkipUnchangedFiles="false" />
     </Target>
     
     <Target Name="CopyToInstalledVSCodeExtension" AfterTargets="Build">
@@ -111,16 +107,10 @@
             <InstalledExtensionFiles Include="$(TargetDir)*.*" />
         </ItemGroup>
 
-        <Copy
-            SourceFiles="@(InstalledExtensionFiles)"
-            DestinationFolder="$(InstalledVSCodeExtensionBin)"
-            SkipUnchangedFiles="true"
-    />
+        <Copy SourceFiles="@(InstalledExtensionFiles)" DestinationFolder="$(InstalledVSCodeExtensionBin)" SkipUnchangedFiles="true" />
     </Target>
     
-    <Target Name="RunTrimmerOnBuild"
-            AfterTargets="CopyToVSCodeExtension"
-            Condition="'$(TrimUnusedAssemblies)' == 'true' AND '$(IsPublishing)' != 'true'">
+    <Target Name="RunTrimmerOnBuild" AfterTargets="CopyToVSCodeExtension" Condition="'$(TrimUnusedAssemblies)' == 'true' AND '$(IsPublishing)' != 'true'">
 
         <Message Text="=== FORCING TRIMMER RUN BEFORE PUBLISH ===" Importance="High" />
         <Message Text="Trimmer exclusions: $(TrimmerExcludedAssemblies)" Importance="High" />
@@ -129,9 +119,7 @@
 
     </Target>
 
-    <Target Name="RunTrimmerOnActualPublish"
-            AfterTargets="Publish"
-            Condition="'$(TrimUnusedAssemblies)' == 'true'">
+    <Target Name="RunTrimmerOnActualPublish" AfterTargets="Publish" Condition="'$(TrimUnusedAssemblies)' == 'true'">
 
         <Message Text="=== RUNNING TRIMMER ON PUBLISHED OUTPUT ===" Importance="High" />
         <Message Text="Trimmer exclusions: $(TrimmerExcludedAssemblies)" Importance="High" />
