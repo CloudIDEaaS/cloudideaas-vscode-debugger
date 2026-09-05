@@ -1,13 +1,21 @@
-# CloudIDEaaS VSCode Debugger
+# CloudIDEaaS JavaScript Debugger
 
 [![Version](https://vsmarketplacebadges.dev/version/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
 [![Installs](https://vsmarketplacebadges.dev/installs/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
 [![Downloads](https://vsmarketplacebadges.dev/downloads/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
 [![Rating](https://vsmarketplacebadges.dev/rating/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
 
-A lightweight Visual Studio Code debugger for browser-based JavaScript, TypeScript, and HTML projects.
+**Press F5 and debug your browser JavaScript directly from Visual Studio Code.**
 
-CloudIDEaaS VSCode Debugger is designed around **convention over configuration**: start debugging from VS Code, launch the local web application and Chrome debugging session, set breakpoints, step through code, and inspect runtime values without relying on `console.log` or constantly switching to browser DevTools.
+CloudIDEaaS JavaScript Debugger gives you a straightforward debugging workflow for JavaScript and HTML projects: it starts your local web server, launches Chrome, connects the debugger, and lets you use breakpoints, stepping, variables, call stacks, and expression evaluation from inside VS Code.
+
+Built around **convention over configuration**, it's designed for developers who want to spend their time debugging their application—not debugging their debugging environment.
+
+## JavaScript Debugging Without the Debugging Hassle
+
+![CloudIDEaaS JavaScript Debugger paused at a JavaScript breakpoint in Visual Studio Code](Media/cloudideaas-javascript-debugger-breakpoint.jpg)
+
+Set a breakpoint, press **F5**, and debug your browser JavaScript without assembling a separate debugging environment.
 
 ## Why CloudIDEaaS?
 
@@ -19,38 +27,27 @@ If you'd like to see the complete breakdown of the features, advantages, benefit
 
 ## Features
 
-- Launch browser debugging directly from Visual Studio Code.
-- Starts a local web server for the current workspace.
-- Launches Chrome with the Chrome DevTools Protocol (CDP) enabled.
-- Supports source breakpoints.
-- Supports conditional breakpoints and exception breakpoint configuration.
-- Step over, step into, and step out.
-- Continue and pause execution.
-- View call stacks and scopes.
-- Inspect local and object variable values.
-- Evaluate expressions while debugging.
-- Modify supported variable values.
-- View loaded JavaScript sources.
-- Handles breakpoint resolution after the application is loaded.
-- Editor-title Start Debugging and Stop Debugging buttons.
+- **F5 browser debugging** — Start your web application and Chrome debugging session directly from VS Code.
+- **Built-in local web server** — Get straightforward JavaScript and HTML projects running without configuring a separate development server.
+- **Startup breakpoints** — Breakpoints are configured before your application loads, helping you catch problems in startup code.
+- **Full stepping controls** — Step over, step into, step out, continue, and pause execution.
+- **Runtime inspection** — View call stacks, scopes, local variables, and object values while your application is running.
+- **Expression evaluation** — Evaluate expressions and modify supported variable values while paused.
+- **Advanced breakpoints** — Supports source breakpoints, conditional breakpoints, and exception breakpoint configuration.
+- **Chrome DevTools Protocol** — Communicates directly with Chrome through CDP while providing the VS Code debugging experience.
 
 ## Getting Started
 
-Read our free online book on [![Visual Studio Code Browser Debugging from the Ground Up](Media/Book.png)](https://publications.lavedajones.com/vscode-debugger/index.html)
-[https://publications.lavedajones.com/vscode-debugger/index.html](https://publications.lavedajones.com/vscode-debugger/index.html)
+### Start Debugging
 
-for a complete guide to using and understanding the debugger.
-
-Create a VS Code debug configuration using the `cloudideaas-vscode-debugger` debugger type and specify the URL for the page you want to debug.
-
-Example `.vscode/launch.json`:
+Create a `.vscode/launch.json` file with a CloudIDEaaS debugger configuration:
 
 ```json
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Chrome Explicit",
+            "name": "Debug in Chrome",
             "type": "cloudideaas-vscode-debugger",
             "request": "launch",
             "url": "http://localhost:8000/index.html"
@@ -59,15 +56,23 @@ Example `.vscode/launch.json`:
 }
 ```
 
-Set a breakpoint in your browser-side code and press **F5**, or use the Start Debugging button in the editor title area.
+Set a breakpoint in your JavaScript and press **F5**.
 
-The debugger launches Chrome initially without loading the application, establishes the debugging connection, configures your breakpoints, and then navigates to the requested URL. This allows breakpoints in startup code to be active before the application begins executing.
+CloudIDEaaS starts the local web server, launches Chrome, connects the debugger, configures your breakpoints, and then loads your application.
+
+### Want to Learn More?
+
+Read our free online book, **Visual Studio Code Browser Debugging from the Ground Up**, for a complete guide to using the debugger and understanding how browser debugging works.
+
+[![Visual Studio Code Browser Debugging from the Ground Up](Media/Book.png)](https://publications.lavedajones.com/vscode-debugger/index.html)
 
 ## Requirements
 
-The initial Marketplace release is intended for **64-bit Windows**.
+- **Windows:** 64-bit Windows (x64)
+- **Visual Studio Code:** Version 1.108.0 or later
+- **Browser:** Google Chrome
 
-The extension includes its C# debug adapter and supporting runtime assemblies in the extension package. Chrome must be available on the system for browser debugging.
+The extension includes the CloudIDEaaS C# debug adapter and its required runtime components. No separate .NET installation is required.
 
 ## Debug Configuration
 
@@ -109,29 +114,40 @@ CloudIDEaaS C# Debug Adapter
 
 This architecture allows VS Code breakpoints, stepping, scopes, variables, expression evaluation, and other debugging operations to be translated into Chrome debugging operations.
 
+For a deeper technical walkthrough:
+
+**[How a VS Code Debugger Actually Works: DAP, CDP, and a C# Debug Adapter](https://dev.to/kenlnetherland/how-a-vs-code-debugger-actually-works-dap-cdp-and-a-c-debug-adapter-2ddl)**
+
 ## Known Limitations
 
-This is an early release and is not intended to duplicate every feature of Microsoft's JavaScript debugger.
+CloudIDEaaS is deliberately focused on straightforward browser-debugging workflows and is not intended to duplicate every feature of Microsoft's JavaScript debugger.
 
-Current limitations may include:
+Current limitations include:
 
-- Windows x64 only for the initial release.
+- Windows x64 only.
 - Advanced source-map and bundled-application scenarios may require additional support.
 - Multi-target debugging such as workers, multiple tabs, and complex browser target topologies is limited.
-- Advanced DAP features such as reverse debugging, instruction breakpoints, data breakpoints, and disassembly are not currently provided.
+- Reverse debugging, instruction breakpoints, data breakpoints, and disassembly are not currently provided.
 
 ## Contributing
 
-If you want to contribute but not include dependent projects, change references to Extension\cloudideaas-vscode-debugger\bin\
-Also set the following in VSCodeDebugger.csproj to false as such:
+Contributions, bug reports, ideas, and technical feedback are welcome.
+
+If you want to contribute without including dependent projects, change references to:
+
+```text
+Extension\cloudideaas-vscode-debugger\bin\
+```
+
+Also set the following in `VSCodeDebugger.csproj` to `false`:
 
 ```xml
 <TrimUnusedAssemblies>false</TrimUnusedAssemblies>
 ```
 
-You will need to do above steps if you fork.  Otherwise if you want to take advantage of the full solution, let us know and we will help.
+You will need to perform the above steps when working from a fork without the full dependent solution.
 
-
+If you want to contribute using the full solution, contact us and we'll help you get the development environment configured.
 
 ## Building and Publishing the Extension
 
@@ -155,7 +171,10 @@ List the files that VSCE will package
 Create the win32-x64 VSIX
         |
         v
-Optionally publish the VSIX to the Visual Studio Marketplace
+Verify the packaged VSIX
+        |
+        v
+Optionally publish that same VSIX to the Visual Studio Marketplace
 ```
 
 ### Create a VSIX Without Publishing
@@ -166,7 +185,7 @@ For a normal patch release:
 npm run release:patch
 ```
 
-This bumps the patch version, publishes the C# debug adapter, bundles the extension, displays the VSCE file list, and creates the VSIX without publishing it to the Marketplace.
+This bumps the patch version, publishes the C# debug adapter, bundles the extension, displays the VSCE file list, creates the VSIX, and verifies the packaged artifact without publishing it to the Marketplace.
 
 For minor or major releases:
 
@@ -190,11 +209,11 @@ npm run release:minor:skip-adapter
 npm run release:major:skip-adapter
 ```
 
-These commands leave the existing adapter files in place and perform the version bump, JavaScript bundle, VSCE file listing, and VSIX packaging.
+These commands leave the existing adapter files in place and perform the version bump, JavaScript bundle, VSCE file listing, VSIX packaging, and verification.
 
 ### Package and Publish to the Marketplace
 
-To perform the complete workflow and publish the resulting VSIX to the Visual Studio Marketplace:
+To perform the complete workflow and publish the resulting verified VSIX to the Visual Studio Marketplace:
 
 ```cmd
 npm run publish:patch
@@ -207,7 +226,7 @@ npm run publish:minor
 npm run publish:major
 ```
 
-The publish scripts package the extension first and then publish that generated VSIX.
+The publish scripts package and verify the extension first and then publish that same generated VSIX.
 
 ### Publish Without Rebuilding the C# Adapter
 
@@ -277,84 +296,20 @@ Open that directory in File Explorer, or from PowerShell run:
 explorer "$env:USERPROFILE\.vscode\extensions"
 ```
 
-Look for the CloudIDEaaS VSCode Debugger folder. Its name will include the publisher, extension name, version, and may include the target platform, for example:
+Look for the CloudIDEaaS JavaScript Debugger folder. Its name will include the publisher, extension name, version, and may include the target platform, for example:
 
 ```text
-cloudideaas.cloudideaas-vscode-debugger-0.1.7-win32-x64
+cloudideaas.cloudideaas-vscode-debugger-0.1.35-win32-x64
 ```
 
 You can also locate the extension from Visual Studio Code:
 
 1. Open the **Extensions** view.
-2. Find **CloudIDEaaS VSCode Debugger** under installed extensions.
+2. Find **CloudIDEaaS JavaScript Debugger** under installed extensions.
 3. Open the extension's gear/menu.
 4. Choose **Open Extension Folder** if that option is available.
 
 Once you have located the installed extension directory, open PowerShell in that directory. You should see folders such as `bin`, `dist`, `resources`, and `scripts`.
-
-### Copying Development Builds to the Installed Extension
-
-When developing or troubleshooting the C# debug adapter, it can be useful to copy the latest Visual Studio build output directly into the `bin` directory of an installed CloudIDEaaS VSCode Debugger extension. This allows changes to the C# adapter to be tested through the normally installed Visual Studio Code extension without rebuilding, packaging, publishing, and reinstalling the entire VSIX for every change.
-
-The standard Visual Studio Code extension directory is located under the current Windows user's profile:
-
-```text
-%USERPROFILE%\.vscode\extensions
-```
-
-In MSBuild, the equivalent user-independent path can be referenced using:
-
-```xml
-$(UserProfile)
-```
-
-Because Visual Studio Code includes the extension version in the installed directory name, define the version as an MSBuild property rather than embedding it throughout the project:
-
-```xml
-<PropertyGroup>
-    <InstalledVSCodeExtensionVersion>0.1.33</InstalledVSCodeExtensionVersion>
-</PropertyGroup>
-```
-
-The following target copies the current project build output into the installed extension after a successful build:
-
-```xml
-<Target Name="CopyToInstalledVSCodeExtension" AfterTargets="Build">
-    <PropertyGroup>
-        <InstalledVSCodeExtensionBin>$(UserProfile)\.vscode\extensions\cloudideaas.cloudideaas-vscode-debugger-$(InstalledVSCodeExtensionVersion)-win32-x64\bin</InstalledVSCodeExtensionBin>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(InstalledVSCodeExtensionBin)" />
-
-    <ItemGroup>
-        <InstalledExtensionFiles Include="$(TargetDir)*.*" />
-    </ItemGroup>
-
-    <Copy
-        SourceFiles="@(InstalledExtensionFiles)"
-        DestinationFolder="$(InstalledVSCodeExtensionBin)"
-        SkipUnchangedFiles="true"
-    />
-</Target>
-```
-
-For example, with:
-
-```xml
-<InstalledVSCodeExtensionVersion>0.1.33</InstalledVSCodeExtensionVersion>
-```
-
-the destination resolves to a path similar to:
-
-```text
-C:\Users\<user>\.vscode\extensions\cloudideaas.cloudideaas-vscode-debugger-0.1.33-win32-x64\bin
-```
-
-When a new Marketplace version of the extension is installed, update `InstalledVSCodeExtensionVersion` to match the installed version.
-
-This technique intentionally copies only the current build output over the existing extension `bin` directory. It does not delete the destination directory first. This is important when the installed extension contains self-contained .NET runtime files or other packaged dependencies that are not present in a normal Visual Studio build output.
-
-This target is intended as a development and troubleshooting convenience. Production extension packages should continue to be created through the normal publish and VSIX packaging workflow.
 
 ### Running the Troubleshooting Script
 
@@ -397,6 +352,28 @@ When reporting a debugger problem, please include:
 - Whether the issue occurs during launch, breakpoint setup, stepping, variable inspection, or shutdown.
 - Any relevant extension/debug-adapter log output.
 - Output from `scripts\Test-DebugAdapter.ps1`, if the troubleshooting script also reproduces the problem.
+
+Report issues on the **[CloudIDEaaS JavaScript Debugger GitHub Issues page](https://github.com/CloudIDEaaS/cloudideaas-vscode-debugger/issues)**.
+
+## Learn More
+
+### Why CloudIDEaaS?
+
+For the complete features, advantages, benefits, use cases, and product positioning:
+
+**[Why CloudIDEaaS JavaScript Debugger?](https://cloudideaas.blogspot.com/p/why-cloudideaas-javascript-debugger.html)**
+
+### How the Debugger Works
+
+For a technical walkthrough of DAP, CDP, startup breakpoints, state management, variables, scopes, and the C# debug adapter:
+
+**[How a VS Code Debugger Actually Works: DAP, CDP, and a C# Debug Adapter](https://dev.to/kenlnetherland/how-a-vs-code-debugger-actually-works-dap-cdp-and-a-c-debug-adapter-2ddl)**
+
+### Development Philosophy
+
+For the broader philosophy behind reducing developer-tool complexity:
+
+**[When Developer Tools Become the Problem: Why I Built a Simpler JavaScript Debugger](https://publications.lavedajones.com/vscode-debugger/index.html)**
 
 ## Release Notes
 
