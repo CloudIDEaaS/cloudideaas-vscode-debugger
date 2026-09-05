@@ -1,4 +1,4 @@
-# CloudIDEaaS JavaScript Debugger
+Ôªø# CloudIDEaaS JavaScript Debugger
 
 [![Version](https://vsmarketplacebadges.dev/version/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
 [![Installs](https://vsmarketplacebadges.dev/installs/CloudIDEaaS.cloudideaas-vscode-debugger.svg)](https://marketplace.visualstudio.com/items?itemName=CloudIDEaaS.cloudideaas-vscode-debugger)
@@ -9,7 +9,7 @@
 
 CloudIDEaaS JavaScript Debugger gives you a straightforward debugging workflow for JavaScript and HTML projects: it starts your local web server, launches Chrome, connects the debugger, and lets you use breakpoints, stepping, variables, call stacks, and expression evaluation from inside VS Code.
 
-Built around **convention over configuration**, it's designed for developers who want to spend their time debugging their applicationónot debugging their debugging environment.
+Built around **convention over configuration**, it's designed for developers who want to spend their time debugging their application‚Äînot debugging their debugging environment.
 
 ## JavaScript Debugging Without the Debugging Hassle
 
@@ -27,14 +27,14 @@ If you'd like to see the complete breakdown of the features, advantages, benefit
 
 ## Features
 
-- **F5 browser debugging** ó Start your web application and Chrome debugging session directly from VS Code.
-- **Built-in local web server** ó Get straightforward JavaScript and HTML projects running without configuring a separate development server.
-- **Startup breakpoints** ó Breakpoints are configured before your application loads, helping you catch problems in startup code.
-- **Full stepping controls** ó Step over, step into, step out, continue, and pause execution.
-- **Runtime inspection** ó View call stacks, scopes, local variables, and object values while your application is running.
-- **Expression evaluation** ó Evaluate expressions and modify supported variable values while paused.
-- **Advanced breakpoints** ó Supports source breakpoints, conditional breakpoints, and exception breakpoint configuration.
-- **Chrome DevTools Protocol** ó Communicates directly with Chrome through CDP while providing the VS Code debugging experience.
+- **F5 browser debugging** ‚Äî Start your web application and Chrome debugging session directly from VS Code.
+- **Built-in local web server** ‚Äî Get straightforward JavaScript and HTML projects running without configuring a separate development server.
+- **Startup breakpoints** ‚Äî Breakpoints are configured before your application loads, helping you catch problems in startup code.
+- **Full stepping controls** ‚Äî Step over, step into, step out, continue, and pause execution.
+- **Runtime inspection** ‚Äî View call stacks, scopes, local variables, and object values while your application is running.
+- **Expression evaluation** ‚Äî Evaluate expressions and modify supported variable values while paused.
+- **Advanced breakpoints** ‚Äî Supports source breakpoints, conditional breakpoints, and exception breakpoint configuration.
+- **Chrome DevTools Protocol** ‚Äî Communicates directly with Chrome through CDP while providing the VS Code debugging experience.
 
 ## Getting Started
 
@@ -118,6 +118,32 @@ For a deeper technical walkthrough:
 
 **[How a VS Code Debugger Actually Works: DAP, CDP, and a C# Debug Adapter](https://dev.to/kenlnetherland/how-a-vs-code-debugger-actually-works-dap-cdp-and-a-c-debug-adapter-2ddl)**
 
+## Roadmap
+
+[![CloudIDEaaS JavaScript Debugger Roadmap](media/roadmap/cloudideaas-javascript-debugger-roadmap-hero.png)](https://publications.lavedajones.com/vscode-debugger/roadmap.html)
+
+CloudIDEaaS JavaScript Debugger started with a simple goal: **press F5 and debug browser JavaScript without turning the debugging environment into its own project.**
+
+The roadmap expands that idea while keeping the same focus on simplicity and reducing developer friction.
+
+Planned directions include:
+
+- Support for additional browsers and devices
+- More web server options and `launch.json` configuration
+- Advanced debugging capabilities
+- Plugin-based support for additional languages and runtimes
+- Integrated support for frameworks such as React, Angular, Vue, and Flutter
+- Container and cross-machine debugging
+- Expanded DAP and CDP protocol support
+- Pluggable browser and runtime debugging protocols
+- Support for additional IDEs
+- Additional VS Code utilities built on CDP domains
+- Playwright integration
+- AI-assisted development of new debugging capabilities
+
+The long-term direction is to evolve CloudIDEaaS from a focused JavaScript debugger into a more extensible debugging platform ‚Äî without losing the straightforward **F5 ‚Üí breakpoint ‚Üí debug** experience that motivated the project in the first place.
+
+‚û°Ô∏è **[Explore the Full CloudIDEaaS JavaScript Debugger Roadmap](https://publications.lavedajones.com/vscode-debugger/roadmap.html)**
 ## Known Limitations
 
 CloudIDEaaS is deliberately focused on straightforward browser-debugging workflows and is not intended to duplicate every feature of Microsoft's JavaScript debugger.
